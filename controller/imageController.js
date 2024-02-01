@@ -7,13 +7,8 @@ const getImage = async (req, res) => {
     if (!image) {
       return res.status(404).send("Image not found");
     }
-    const imgBase64 = image.data;
-    console.log(image.contentType);
-    res.status(200).json({
-      success: true,
-      contentType: image.contentType,
-      imageUrl: `data:${image.contentType};base64,${imgBase64}`,
-    });
+    res.contentType(image.contentType);
+    res.send(image.data);
   } catch (error) {
     console.log(error);
     res.status(500).json("This is error happening");
