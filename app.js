@@ -11,11 +11,12 @@ const Image = require("./models/Image");
 // --es-module-specifier-resolution=node
 const { getImage } = require("./controller/imageController.js");
 const { imageRoute } = require("./routes/imageRoute.js");
+const { itemRoute } = require("./routes/itemRoute.js");
 
 app.use(bodyParser.json());
 app.use(cors());
 
-// app.use("/api/v1/item", itemRoute);
+app.use("/api/v1/item", itemRoute);
 
 app.use("/api/v1/image", imageRoute);
 
