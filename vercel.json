@@ -12,4 +12,15 @@
 			"dest": "index.js"
 		}
 	]
+	,
+	"crons" : [
+		{
+			"path" : "/api/v1/item/daily",
+			"schedule" : "0 2 * * *"
+		},
+		{
+			"path" : "/api/v1/item/daily",
+			"schedule" : "0 14 * * *"
+		}
+	]
 }
