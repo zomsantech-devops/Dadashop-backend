@@ -6,6 +6,46 @@ const scheduledTask = () => {
   console.log(`Cron job executed at ${now.toLocaleString()}`);
 };
 
+const getItemDetail = async (req, res) => {
+  const itemId = req.params.itemId;
+  try {
+    const response = await axios.get(
+      `https://fortniteapi.io/v2/items/get?id=${itemId}&lang=en`,
+      {
+        headers: {
+          accept: "application/json",
+          Authorization: "40cb2d55-3b4133d9-f1708ca0-0f179353",
+        },
+        params: {
+          lang: "en",
+          includeRenderData: true,
+          includeHiddenTabs: false,
+        },
+      }
+    );
+
+    console.log(response.data);
+
+    if (!response.data) {
+      res.status(400).json({
+        success: false,
+        message: "Item not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Get Item successfully",
+      data: response.data,
+    });
+
+    // res.send(response);
+  } catch (error) {
+    res.status(500);
+    console.error("Error fetching data from API:", error);
+  }
+};
+
 const fetchAndStoreData = async () => {
   try {
     const response = await axios.get("https://fortniteapi.io/v2/shop", {
@@ -19,6 +59,7 @@ const fetchAndStoreData = async () => {
         includeHiddenTabs: false,
       },
     });
+
     if (!response || !response.data || !response.data.shop) {
       throw new Error("No data returned from the API");
     }
@@ -36,40 +77,31 @@ const fetchAndStoreData = async () => {
     let extractedItems = [];
 
     data.shop.forEach((shopItem) => {
-      shopItem.granted.forEach((grantedItem) => {
-        extractedItems.push({
-          id: grantedItem.id,
-          type_id: grantedItem.type.id,
-          type_name: grantedItem.type.name,
-          name: grantedItem.name,
-          description: grantedItem.description,
-          rarity_id: grantedItem.rarity.id,
-          images_background: grantedItem.images.background,
-          images_full_background: grantedItem.images.full_background,
-          finalPrice: null,
-          time_fetch,
-          time_update,
-          uid_update,
-        });
+      extractedItems.push({
+        id: shopItem.mainId,
+        type_id: shopItem.displayType,
+        type_name: shopItem.mainType,
+        name: shopItem.displayName,
+        description: shopItem.displayDescription,
+        rarity_id: shopItem.rarity.id,
+        rarity_name: shopItem.rarity.name,
+        images_texture_background: shopItem.displayAssets[0].background_texture,
+        images_item: shopItem.displayAssets[0].url,
+        images_background: shopItem.displayAssets[0].background,
+        images_full_background: shopItem.displayAssets[0].full_background,
+        section_name: shopItem.section.name,
+        finalPrice: shopItem.price.finalPrice,
+        time_fetch,
+        time_update,
+        uid_update,
       });
-    });
-
-    extractedItems.forEach((item) => {
-      const matchingElement = data.shop.find(
-        (shopItem) =>
-          shopItem.displayName === item.name ||
-          shopItem.displayType === item.type_name
-      );
-
-      if (matchingElement) {
-        item.finalPrice = matchingElement.price.finalPrice;
-      }
     });
 
     for (let item of extractedItems) {
       await Item.create(item);
-      console.log(item);
+      console.log(extractedItems);
     }
+
     return { time_update };
   } catch (err) {
     console.log("ERROR : ", err);
@@ -146,4 +178,5 @@ module.exports = {
   dailyCheckUpdatedItem,
   initialize,
   getItems,
+  getItemDetail,
 };
