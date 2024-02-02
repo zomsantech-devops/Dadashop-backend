@@ -57,7 +57,7 @@ const fetchAndStoreData = async () => {
     extractedItems.forEach((item) => {
       const matchingElement = data.shop.find(
         (shopItem) =>
-          shopItem.displayName === item.name &&
+          shopItem.displayName === item.name ||
           shopItem.displayType === item.type_name
       );
 
@@ -68,6 +68,7 @@ const fetchAndStoreData = async () => {
 
     for (let item of extractedItems) {
       await Item.create(item);
+      console.log(item);
     }
     return { time_update };
   } catch (err) {
@@ -77,11 +78,13 @@ const fetchAndStoreData = async () => {
 };
 
 const initialize = async (req, res) => {
-  await Item.deleteMany({}).then(() => {
-    fetchAndStoreData();
-  });
+  await Item.deleteMany({});
+  const response = await fetchAndStoreData();
 
-  res.json("dd");
+  res.json({
+    success: true,
+    time: response,
+  });
 };
 
 const getItems = async (req, res) => {
