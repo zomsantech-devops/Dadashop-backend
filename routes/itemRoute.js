@@ -10,6 +10,6 @@ const {
 router.get("/reset", initialize);
 router.get("/daily", dailyCheckUpdatedItem);
 router.get("/", getItems);
-router.get(":itemId", getItemDetail);
+router.get("/:itemId", getItemDetail);
 
 module.exports = { itemRoute: router };

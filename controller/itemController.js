@@ -8,41 +8,29 @@ const scheduledTask = () => {
 
 const getItemDetail = async (req, res) => {
   const itemId = req.params.itemId;
+
   try {
     const response = await axios.get(
       `https://fortniteapi.io/v2/items/get?id=${itemId}&lang=en`,
       {
         headers: {
           accept: "application/json",
-          Authorization: "40cb2d55-3b4133d9-f1708ca0-0f179353",
-        },
-        params: {
-          lang: "en",
-          includeRenderData: true,
-          includeHiddenTabs: false,
+          Authorization: "3945fead-522037f0-427f0ece-efeb4a37",
         },
       }
     );
 
     console.log(response.data);
 
-    if (!response.data) {
-      res.status(400).json({
-        success: false,
-        message: "Item not found",
-      });
+    if (!response.data || !response.data.item) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Item not found" });
     }
-
-    res.status(200).json({
-      success: true,
-      message: "Get Item successfully",
-      data: response.data,
-    });
-
-    // res.send(response);
+    return res.status(200).json({ success: true, data: response.data });
   } catch (error) {
-    res.status(500);
-    console.error("Error fetching data from API:", error);
+    console.error("Error fetching data from API or Redis:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -123,7 +111,7 @@ const getItems = async (req, res) => {
   const allItems = await Item.find({});
 
   if (!allItems) {
-    res.status(500).json({
+    res.status(400).json({
       success: false,
       message: "Items not found",
     });
