@@ -1,6 +1,6 @@
 const Item = require("../models/Item");
 const axios = require("axios");
-const { kv, createClient } = require("@vercel/kv");
+const { kv } = require("@vercel/kv");
 
 const scheduledTask = () => {
   const now = new Date();
@@ -14,7 +14,20 @@ const jsonToRedis = (data) => {
 };
 
 const redisToJson = (data) => {
-  const modifiedRes = data.replace(/'/g, '"').replace(/\\'/g, "'");
+  let modifiedRes = data.replace(/\\'/g, "\\'").replace(/"/g, '\\"');
+  modifiedRes = modifiedRes.replace(/'/g, '"');
+  const itemResponse = JSON.parse(modifiedRes);
+  return itemResponse;
+};
+
+const arrayJsonToRedis = (data) => {
+  const itemResponse = JSON.stringify(data);
+  const modifiedItemResponse = itemResponse.replace(/'/g, "\\'");
+  return `'${modifiedItemResponse}'`;
+};
+
+const arrayRedisToJson = (data) => {
+  let modifiedRes = data.substring(1, data.length - 1).replace(/\\'/g, "'");
   const itemResponse = JSON.parse(modifiedRes);
   return itemResponse;
 };
@@ -22,53 +35,49 @@ const redisToJson = (data) => {
 const getItemDetail = async (req, res) => {
   const itemId = req.params.itemId;
 
+  const cacheKey = `item_${itemId}`;
+  console.log(cacheKey);
   try {
-    const response = await axios.get(
-      `https://fortniteapi.io/v2/items/get?id=${itemId}&lang=en`,
-      {
-        headers: {
-          accept: "application/json",
-          Authorization: "3945fead-522037f0-427f0ece-efeb4a37",
-        },
+    const cacheData = await kv.get(cacheKey);
+    // console.log(cacheData);
+    console.log("Get successful");
+    if (!cacheData) {
+      const response = await axios.get(
+        `https://fortniteapi.io/v2/items/get?id=${itemId}&lang=en`,
+        {
+          headers: {
+            accept: "application/json",
+            Authorization: "3945fead-522037f0-427f0ece-efeb4a37",
+          },
+        }
+      );
+
+      if (!response.data || !response.data.item) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Item not found" });
       }
-    );
 
-    // console.log(JSON.stringify(response.data));
+      try {
+        console.log("Set successful");
+        await kv.set(cacheKey, jsonToRedis(response.data), {
+          ex: 3600,
+          nx: true,
+        });
+      } catch (err) {
+        console.log("Caching Error", err);
+      }
 
-    const itemResponse = jsonToRedis(response.data);
-
-    try {
-      await kv.set("setExample", itemResponse, {
-        ex: 100,
-        nx: true,
-      });
-    } catch (err) {
-      console.log("Redis Error", err);
-    }
-
-    try {
-      const getExample = await kv.get("setExample");
-      const responseRedis = redisToJson(getExample);
       return res
         .status(200)
-        .json({ success: true, data: responseRedis, source: "cache" });
-    } catch (err) {
-      console.log("Redis Error Response", err);
+        .json({ success: true, data: response.data, source: "database" });
     }
 
-    // console.log(response.data);
-
-    if (!response.data || !response.data.item) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Item not found" });
-    }
     return res
       .status(200)
-      .json({ success: true, data: response.data, source: "database" });
-  } catch (error) {
-    console.error("Error fetching data from API or Redis:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+      .json({ success: true, data: redisToJson(cacheData), source: "cache" });
+  } catch (err) {
+    console.log("Caching Error", err);
   }
 };
 
@@ -87,14 +96,13 @@ const fetchAndStoreData = async () => {
     });
 
     if (!response || !response.data || !response.data.shop) {
-      throw new Error("No data returned from the API");
+      return res.status(400).json({
+        success: false,
+        message: "Fortnite api is not available for now",
+      });
     }
 
     const data = response.data;
-
-    if (!data || !data.shop) {
-      throw new Error("No data returned from the API");
-    }
 
     const time_fetch = new Date();
     const time_update = new Date(data.lastUpdate.date);
@@ -125,13 +133,12 @@ const fetchAndStoreData = async () => {
 
     for (let item of extractedItems) {
       await Item.create(item);
-      console.log(extractedItems);
     }
 
     return { time_update };
   } catch (err) {
     console.log("ERROR : ", err);
-    throw err;
+    return res.status(500);
   }
 };
 
@@ -146,19 +153,48 @@ const initialize = async (req, res) => {
 };
 
 const getItems = async (req, res) => {
-  const allItems = await Item.find({});
+  const time = new Date();
+  cacheKey = `date_${time.getDate()}-${time.getMonth()}`;
+  try {
+    const cacheData = await kv.get(cacheKey);
+    // console.log(cacheData);
 
-  if (!allItems) {
-    res.status(400).json({
-      success: false,
-      message: "Items not found",
+    console.log("Get successful");
+    // if (true) {
+    if (!cacheData) {
+      const item = await Item.find({});
+
+      if (!item) {
+        return res.status(400).json({
+          success: false,
+          message: "Item not found, please fetch data again",
+        });
+      }
+
+      try {
+        await kv.set(cacheKey, arrayJsonToRedis(item), {
+          ex: 3600,
+          nx: true,
+        });
+        console.log("Set successful");
+      } catch (err) {
+        console.log("Caching Error", err);
+      }
+
+      return res
+        .status(200)
+        .json({ success: true, data: item, source: "database" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: arrayRedisToJson(cacheData),
+      source: "cache",
     });
+  } catch (err) {
+    console.log("Caching Error", err);
+    return res.status(500);
   }
-
-  res.json({
-    success: true,
-    message: allItems,
-  });
 };
 
 const dailyCheckUpdatedItem = async (req, res) => {
