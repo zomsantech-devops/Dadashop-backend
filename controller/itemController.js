@@ -1,9 +1,22 @@
 const Item = require("../models/Item");
 const axios = require("axios");
+const { kv, createClient } = require("@vercel/kv");
 
 const scheduledTask = () => {
   const now = new Date();
   console.log(`Cron job executed at ${now.toLocaleString()}`);
+};
+
+const jsonToRedis = (data) => {
+  const itemResponse = JSON.stringify(data);
+  const modifiedItemResponse = itemResponse.replace(/"/g, "'");
+  return modifiedItemResponse;
+};
+
+const redisToJson = (data) => {
+  const modifiedRes = data.replace(/'/g, '"').replace(/\\'/g, "'");
+  const itemResponse = JSON.parse(modifiedRes);
+  return itemResponse;
 };
 
 const getItemDetail = async (req, res) => {
@@ -20,14 +33,39 @@ const getItemDetail = async (req, res) => {
       }
     );
 
-    console.log(response.data);
+    // console.log(JSON.stringify(response.data));
+
+    const itemResponse = jsonToRedis(response.data);
+
+    try {
+      await kv.set("setExample", itemResponse, {
+        ex: 100,
+        nx: true,
+      });
+    } catch (err) {
+      console.log("Redis Error", err);
+    }
+
+    try {
+      const getExample = await kv.get("setExample");
+      const responseRedis = redisToJson(getExample);
+      return res
+        .status(200)
+        .json({ success: true, data: responseRedis, source: "cache" });
+    } catch (err) {
+      console.log("Redis Error Response", err);
+    }
+
+    // console.log(response.data);
 
     if (!response.data || !response.data.item) {
       return res
         .status(400)
         .json({ success: false, message: "Item not found" });
     }
-    return res.status(200).json({ success: true, data: response.data });
+    return res
+      .status(200)
+      .json({ success: true, data: response.data, source: "database" });
   } catch (error) {
     console.error("Error fetching data from API or Redis:", error);
     return res.status(500).json({ success: false, message: "Server error" });
