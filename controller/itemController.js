@@ -98,7 +98,7 @@ const fetchAndStoreData = async () => {
     if (!response || !response.data || !response.data.shop) {
       return res.status(400).json({
         success: false,
-        message: "Fortnite api is not available for now",
+        message: "Fortnite api is not available right now",
       });
     }
 
@@ -155,7 +155,20 @@ const fetchAndStoreData = async () => {
     });
 
     for (let item of extractedItems) {
-      await Item.create(item);
+      const item1 = await Item.create(item);
+    }
+
+    try {
+      const time = new Date();
+      cacheKey = `date_${time.getDate()}-${time.getMonth()}`;
+      const item = await Item.find({});
+      await kv.set(cacheKey, arrayJsonToRedis(item), {
+        ex: 1800,
+        nx: true,
+      });
+      console.log("Set Cache Successful");
+    } catch (err) {
+      console.log("Caching Error", err);
     }
 
     return { time_update };
@@ -196,10 +209,10 @@ const getItems = async (req, res) => {
 
       try {
         await kv.set(cacheKey, arrayJsonToRedis(item), {
-          ex: 3600,
+          ex: 1800,
           nx: true,
         });
-        console.log("Set successful");
+        console.log("Set Cache Successful");
       } catch (err) {
         console.log("Caching Error", err);
       }
