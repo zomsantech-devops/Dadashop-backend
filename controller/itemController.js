@@ -155,18 +155,23 @@ const fetchAndStoreData = async () => {
     });
 
     for (let item of extractedItems) {
-      const item1 = await Item.create(item);
+      await Item.create(item);
     }
 
     try {
       const time = new Date();
+
       cacheKey = `date_${time.getDate()}-${time.getMonth()}`;
+      await kv.del(cacheKey);
+
       const item = await Item.find({});
       await kv.set(cacheKey, arrayJsonToRedis(item), {
         ex: 1800,
         nx: true,
       });
+
       console.log("Set Cache Successful");
+      return { item };
     } catch (err) {
       console.log("Caching Error", err);
     }
