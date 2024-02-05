@@ -111,6 +111,28 @@ const fetchAndStoreData = async () => {
     let extractedItems = [];
 
     data.shop.forEach((shopItem) => {
+      let images_background = shopItem.displayAssets[0].background;
+      let images_full_background = shopItem.displayAssets[0].full_background;
+
+      if (shopItem.granted && shopItem.granted.length > 0) {
+        const matchingGranted = shopItem.granted.find(
+          (grantedItem) => grantedItem.id === shopItem.mainId
+        );
+        if (matchingGranted) {
+          images_background =
+            matchingGranted.images.background || images_background;
+          images_full_background =
+            matchingGranted.images.full_background || images_full_background;
+        }
+      }
+
+      const display_assets = shopItem.displayAssets.map((asset) => ({
+        display_id: asset.displayAsset,
+        image_url: asset.url,
+        image_background: asset.background,
+        image_full_background: asset.full_background,
+      }));
+
       extractedItems.push({
         id: shopItem.mainId,
         type_id: shopItem.displayType,
@@ -121,8 +143,9 @@ const fetchAndStoreData = async () => {
         rarity_name: shopItem.rarity.name,
         images_texture_background: shopItem.displayAssets[0].background_texture,
         images_item: shopItem.displayAssets[0].url,
-        images_background: shopItem.displayAssets[0].background,
-        images_full_background: shopItem.displayAssets[0].full_background,
+        images_background: images_background,
+        images_full_background: images_full_background,
+        display_assets,
         section_name: shopItem.section.name,
         finalPrice: shopItem.price.finalPrice,
         time_fetch,

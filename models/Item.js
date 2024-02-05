@@ -12,6 +12,14 @@ const itemSchema = new mongoose.Schema({
   images_item: String,
   images_background: String,
   images_full_background: String,
+  display_assets: [
+    {
+      display_id: String,
+      image_url: String,
+      image_background: String,
+      image_full_background: String,
+    },
+  ],
   section_name: String,
   finalPrice: Number,
   time_fetch: Date,

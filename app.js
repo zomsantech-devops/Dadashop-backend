@@ -12,6 +12,7 @@ const Image = require("./models/Image");
 const { getImage } = require("./controller/imageController.js");
 const { imageRoute } = require("./routes/imageRoute.js");
 const { itemRoute } = require("./routes/itemRoute.js");
+const { settingRoute } = require("./routes/settingRoute.js");
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -19,6 +20,8 @@ app.use(cors());
 app.use("/api/v1/item", itemRoute);
 
 app.use("/api/v1/image", imageRoute);
+
+app.use("/api/v1/setting", settingRoute);
 
 // app.use("/api/v1/user", userRoute);
 
