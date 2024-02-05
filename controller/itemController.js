@@ -35,11 +35,10 @@ const arrayRedisToJson = (data) => {
 const getItemDetail = async (req, res) => {
   const itemId = req.params.itemId;
 
-  const cacheKey = `item_${itemId}`;
+  const cacheKey = `itemr_${itemId}`;
   console.log(cacheKey);
   try {
     const cacheData = await kv.get(cacheKey);
-    // console.log(cacheData);
     console.log("Get successful");
     if (!cacheData) {
       const response = await axios.get(
@@ -58,26 +57,55 @@ const getItemDetail = async (req, res) => {
           .json({ success: false, message: "Item not found" });
       }
 
+      const displayAssetsString = arrayJsonToRedis(
+        response.data.item.displayAssets
+      );
+      delete response.data.item.displayAssets;
+
+      const dataString = jsonToRedis(response.data);
+
       try {
         console.log("Set successful");
-        await kv.set(cacheKey, jsonToRedis(response.data), {
+        await kv.set(`${cacheKey}_main`, dataString, { ex: 3600 });
+        await kv.set(`${cacheKey}_displayAssets`, displayAssetsString, {
           ex: 3600,
-          nx: true,
         });
       } catch (err) {
         console.log("Caching Error", err);
       }
 
-      return res
-        .status(200)
-        .json({ success: true, data: response.data, source: "database" });
+      const fullData = {
+        ...response.data,
+        item: {
+          ...response.data.item,
+          displayAssets: arrayRedisToJson(displayAssetsString),
+        },
+      };
+      return res.status(200).json({
+        success: true,
+        data: fullData,
+        source: "database",
+      });
     }
+
+    const mainDataString = await kv.get(`${cacheKey}_main`);
+    const displayAssetsString = await kv.get(`${cacheKey}_displayAssets`);
+    const mainData = redisToJson(mainDataString);
+    const displayAssetsData = arrayRedisToJson(displayAssetsString);
+
+    const fullData = {
+      ...mainData,
+      item: { ...mainData.item, displayAssets: displayAssetsData },
+    };
 
     return res
       .status(200)
-      .json({ success: true, data: redisToJson(cacheData), source: "cache" });
+      .json({ success: true, data: fullData, source: "cache" });
   } catch (err) {
+    // console.log(555);
+
     console.log("Caching Error", err);
+    return res.status(500);
   }
 };
 
@@ -174,6 +202,7 @@ const fetchAndStoreData = async () => {
       return { item };
     } catch (err) {
       console.log("Caching Error", err);
+      return res.status(500);
     }
 
     return { time_update };
@@ -213,13 +242,14 @@ const getItems = async (req, res) => {
       }
 
       try {
-        await kv.set(cacheKey, arrayJsonToRedis(item), {
+        await kv.set(cacheKey, jsonToRedis(item), {
           ex: 1800,
           nx: true,
         });
         console.log("Set Cache Successful");
       } catch (err) {
         console.log("Caching Error", err);
+        return res.status(500);
       }
 
       return res
