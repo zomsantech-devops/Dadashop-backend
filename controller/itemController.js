@@ -102,8 +102,6 @@ const getItemDetail = async (req, res) => {
       .status(200)
       .json({ success: true, data: fullData, source: "cache" });
   } catch (err) {
-    // console.log(555);
-
     console.log("Caching Error", err);
     return res.status(500);
   }
@@ -189,7 +187,7 @@ const fetchAndStoreData = async () => {
     try {
       const time = new Date();
 
-      cacheKey = `date_${time.getDate()}-${time.getMonth()}`;
+      cacheKey = `dater_${time.getDate()}-${time.getMonth()}`;
       await kv.del(cacheKey);
 
       const item = await Item.find({});
@@ -224,7 +222,7 @@ const initialize = async (req, res) => {
 
 const getItems = async (req, res) => {
   const time = new Date();
-  cacheKey = `date_${time.getDate()}-${time.getMonth()}`;
+  cacheKey = `dater_${time.getDate()}-${time.getMonth()}`;
   try {
     const cacheData = await kv.get(cacheKey);
     // console.log(cacheData);
@@ -242,7 +240,7 @@ const getItems = async (req, res) => {
       }
 
       try {
-        await kv.set(cacheKey, jsonToRedis(item), {
+        await kv.set(cacheKey, arrayJsonToRedis(item), {
           ex: 1800,
           nx: true,
         });
