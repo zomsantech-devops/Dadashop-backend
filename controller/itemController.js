@@ -60,9 +60,13 @@ const getItemDetail = async (req, res) => {
       const displayAssetsString = arrayJsonToRedis(
         response.data.item.displayAssets
       );
+
       delete response.data.item.displayAssets;
 
       const dataString = jsonToRedis(response.data);
+
+      // console.log(dataString, displayAssetsString)
+      // console.log(arrayRedisToJson(displayAssetsString), redisToJson(dataString))
 
       try {
         console.log("Set successful");
@@ -74,13 +78,31 @@ const getItemDetail = async (req, res) => {
         console.log("Caching Error", err);
       }
 
+      // const fullData = {
+      //   ...response.data,
+      //   item: {
+      //     ...response.data.item,
+      //     displayAssets: arrayRedisToJson(displayAssetsString),
+      //   },
+      // };
+
       const fullData = {
         ...response.data,
         item: {
           ...response.data.item,
           displayAssets: arrayRedisToJson(displayAssetsString),
+          styles: response.data.item.styles.map((style, index) => {
+            const videoUrl = response.data.item.previewVideos[index] ? response.data.item.previewVideos[index].url : null;
+
+            return {
+              ...style,
+              video_url: videoUrl
+            };
+          }),
         },
       };
+
+
       return res.status(200).json({
         success: true,
         data: fullData,
