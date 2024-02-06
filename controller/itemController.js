@@ -42,7 +42,7 @@ const getItemDetail = async (req, res) => {
     console.log("Get successful");
     if (!cacheData) {
       const response = await axios.get(
-        `https://fortniteapi.io/v2/items/get?id=${itemId}&lang=en`,
+        `https://fortniteapi.io/v2/items/get?id=${itemId}&includeRenderData=true&lang=en`,
         {
           headers: {
             accept: "application/json",
@@ -218,8 +218,9 @@ const fetchAndStoreData = async () => {
         nx: true,
       });
 
+      console.log("Get Cache Reset Successfully")
       console.log("Set Cache Successful");
-      return { item };
+      return { new : Date() };
     } catch (err) {
       console.log("Caching Error", err);
       return res.status(500);
