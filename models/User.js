@@ -1,21 +1,9 @@
 const mongoose = require("mongoose");
 
-const userBalanceSchema = new mongoose.Schema(
-  {
-    id: String,
-    discord_id: String,
-    discord_username: String,
-    name: String,
-    name_display: String,
-    current_points: Number,
-    total_points: Number,
-    tier: String,
-  },
-  { versionKey: false }
-);
+const userSchema = new mongoose.Schema({
+  email: { type: String, unique: true, required: true },
+  password: { type: String, required: true },
+  isAdmin: { type: Boolean, default: true },
+});
 
-module.exports = mongoose.model(
-  "UserBalance",
-  userBalanceSchema,
-  "user_balance"
-);
+module.exports = mongoose.model("User", userSchema);

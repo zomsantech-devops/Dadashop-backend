@@ -125,8 +125,10 @@ const getItemDetail = async (req, res) => {
       .status(200)
       .json({ success: true, data: fullData, source: "cache" });
   } catch (err) {
-    console.log("Caching Error", err);
-    return res.status(500);
+    return res.status(500).json({
+      success: false,
+      message: `Can't get item detail shop right now, Please contract admin ${err.message}`,
+    });
   }
 };
 
@@ -160,7 +162,6 @@ const fetchAndStoreData = async () => {
     let extractedItems = [];
 
     data.shop.forEach((shopItem) => {
-      // ตรวจสอบและกำหนดค่าเริ่มต้นสำหรับ displayAssets
       let images_background =
         shopItem.displayAssets && shopItem.displayAssets[0]
           ? shopItem.displayAssets[0].background
@@ -262,8 +263,10 @@ const fetchAndStoreData = async () => {
 
     return { time_update };
   } catch (err) {
-    console.log("ERROR : ", err);
-    // return res.status(500);
+    return res.status(500).json({
+      success: false,
+      message: `Can't fetch item shop right now, Please contract admin ${err.message}`,
+    });
   }
 };
 
@@ -318,8 +321,10 @@ const getItems = async (req, res) => {
       source: "cache",
     });
   } catch (err) {
-    console.log("Caching Error", err);
-    return res.status(500);
+    return res.status(500).json({
+      success: false,
+      message: `Can't get item right now, Please contract admin ${err.message}`,
+    });
   }
 };
 
