@@ -1,4 +1,5 @@
 const Image = require("../models/Image");
+const sharp = require("sharp");
 
 const getImage = async (req, res) => {
   try {
@@ -11,7 +12,46 @@ const getImage = async (req, res) => {
     res.send(image.data);
   } catch (error) {
     console.log(error);
-    res.status(500).json("This is error happening");
+    res
+      .status(500)
+      .json("There is something bad happening with image processing");
+  }
+};
+const getAllImage = async (req, res) => {
+  try {
+    const images = await Image.find({});
+    if (!images.length) {
+      return res.status(404).send("No images found");
+    }
+
+    const imagesDataUrls = await Promise.all(
+      images.map((image) =>
+        sharp(image.data)
+          .resize(1080)
+          .webp({ quality: 35 })
+          .toBuffer()
+          .then((webpData) => {
+            const base64Data = webpData.toString("base64");
+            const dataUrl = `data:image/webp;base64,${base64Data}`;
+            return {
+              _id: image._id,
+              name: image.name,
+              dataUrl: dataUrl,
+            };
+          })
+      )
+    );
+
+    res.status(200).json({
+      success: true,
+      data: imagesDataUrls,
+      message: "Fetch all images successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "There was an error processing the images" });
   }
 };
 
@@ -22,14 +62,26 @@ const uploadImage = async (req, res) => {
     if (!image) {
       image = new Image({ name: banner });
     }
-    // const imgBase64 = req.file.buffer.toString("base64");
-    image.data = req.file.buffer;
-    image.contentType = req.file.mimetype;
-    await image.save();
-    res.json({
-      success: true,
-      message: "Image uploaded successfully!",
-    });
+
+    sharp(req.file.buffer)
+      .resize(1080)
+      .webp({ quality: 100 })
+      .toBuffer()
+      .then((webpData) => {
+        image.data = webpData;
+        image.contentType = "image/webp";
+        return image.save();
+      })
+      .then(() => {
+        res.json({
+          success: true,
+          message: "Image uploaded successfully!",
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+        res.status(500).send({ message: error.message });
+      });
   } catch (error) {
     console.log(error);
     res.status(500).send({ message: error.message });
@@ -39,4 +91,5 @@ const uploadImage = async (req, res) => {
 module.exports = {
   getImage,
   uploadImage,
+  getAllImage,
 };

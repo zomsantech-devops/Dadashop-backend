@@ -92,16 +92,17 @@ const getItemDetail = async (req, res) => {
           ...response.data.item,
           displayAssets: arrayRedisToJson(displayAssetsString),
           styles: response.data.item.styles.map((style, index) => {
-            const videoUrl = response.data.item.previewVideos[index] ? response.data.item.previewVideos[index].url : null;
+            const videoUrl = response.data.item.previewVideos[index]
+              ? response.data.item.previewVideos[index].url
+              : null;
 
             return {
               ...style,
-              video_url: videoUrl
+              video_url: videoUrl,
             };
           }),
         },
       };
-
 
       return res.status(200).json({
         success: true,
@@ -159,14 +160,21 @@ const fetchAndStoreData = async () => {
     let extractedItems = [];
 
     data.shop.forEach((shopItem) => {
-      let images_background = shopItem.displayAssets[0].background;
-      let images_full_background = shopItem.displayAssets[0].full_background;
+      // ตรวจสอบและกำหนดค่าเริ่มต้นสำหรับ displayAssets
+      let images_background =
+        shopItem.displayAssets && shopItem.displayAssets[0]
+          ? shopItem.displayAssets[0].background
+          : null;
+      let images_full_background =
+        shopItem.displayAssets && shopItem.displayAssets[0]
+          ? shopItem.displayAssets[0].full_background
+          : null;
 
       if (shopItem.granted && shopItem.granted.length > 0) {
         const matchingGranted = shopItem.granted.find(
           (grantedItem) => grantedItem.id === shopItem.mainId
         );
-        if (matchingGranted) {
+        if (matchingGranted && matchingGranted.images) {
           images_background =
             matchingGranted.images.background || images_background;
           images_full_background =
@@ -174,31 +182,57 @@ const fetchAndStoreData = async () => {
         }
       }
 
-      const display_assets = shopItem.displayAssets.map((asset) => ({
-        display_id: asset.displayAsset,
-        image_url: asset.url,
-        image_background: asset.background,
-        image_full_background: asset.full_background,
-      }));
+      // ตรวจสอบค่า null ก่อน map displayAssets
+      const display_assets = shopItem.displayAssets
+        ? shopItem.displayAssets.map((asset) => ({
+            display_id: asset.displayAsset ? asset.displayAsset : null,
+            image_url: asset.url ? asset.url : null,
+            image_background: asset.background ? asset.background : null,
+            image_full_background: asset.full_background
+              ? asset.full_background
+              : null,
+          }))
+        : [];
 
+      // สร้าง object สำหรับ push โดยตรวจสอบค่า null ทุกครั้ง
       extractedItems.push({
-        id: shopItem.mainId,
-        type_id: shopItem.displayType,
-        type_name: shopItem.mainType,
-        name: shopItem.displayName,
-        description: shopItem.displayDescription,
-        rarity_id: shopItem.rarity.id,
-        rarity_name: shopItem.rarity.name,
-        images_texture_background: shopItem.displayAssets[0].background_texture,
-        images_item: shopItem.displayAssets[0].url,
+        id: shopItem.mainId ? shopItem.mainId : null,
+        type_id: shopItem.displayType ? shopItem.displayType : null,
+        type_name: shopItem.mainType ? shopItem.mainType : null,
+        name: shopItem.displayName ? shopItem.displayName : null,
+        description: shopItem.displayDescription
+          ? shopItem.displayDescription
+          : null,
+        rarity_id:
+          shopItem.rarity && shopItem.rarity.id ? shopItem.rarity.id : null,
+        rarity_name:
+          shopItem.rarity && shopItem.rarity.name ? shopItem.rarity.name : null,
+        images_texture_background:
+          shopItem.displayAssets &&
+          shopItem.displayAssets[0] &&
+          shopItem.displayAssets[0].background_texture
+            ? shopItem.displayAssets[0].background_texture
+            : null,
+        images_item:
+          shopItem.displayAssets &&
+          shopItem.displayAssets[0] &&
+          shopItem.displayAssets[0].url
+            ? shopItem.displayAssets[0].url
+            : null,
         images_background: images_background,
         images_full_background: images_full_background,
-        display_assets,
-        section_name: shopItem.section.name,
-        finalPrice: shopItem.price.finalPrice,
-        time_fetch,
-        time_update,
-        uid_update,
+        display_assets: display_assets,
+        section_name:
+          shopItem.section && shopItem.section.name
+            ? shopItem.section.name
+            : null,
+        finalPrice:
+          shopItem.price && shopItem.price.finalPrice
+            ? shopItem.price.finalPrice
+            : null,
+        time_fetch: time_fetch,
+        time_update: time_update,
+        uid_update: uid_update ? uid_update : null,
       });
     });
 
@@ -218,18 +252,18 @@ const fetchAndStoreData = async () => {
         nx: true,
       });
 
-      console.log("Get Cache Reset Successfully")
+      console.log("Get Cache Reset Successfully");
       console.log("Set Cache Successful");
-      return { new : Date() };
+      return { new: Date() };
     } catch (err) {
       console.log("Caching Error", err);
-      return res.status(500);
+      // res.status(500);
     }
 
     return { time_update };
   } catch (err) {
     console.log("ERROR : ", err);
-    return res.status(500);
+    // return res.status(500);
   }
 };
 
