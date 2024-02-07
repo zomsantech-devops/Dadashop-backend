@@ -87,13 +87,19 @@ const getItemDetail = async (req, res) => {
       // };
 
       const fullData = {
-        ...response.data,
+        ...mainData,
         item: {
-          ...response.data.item,
+          ...mainData.item,
           displayAssets: arrayRedisToJson(displayAssetsString),
-          styles: response.data.item.styles.map((style, index) => {
-            const videoUrl = response.data.item.previewVideos[index]
-              ? response.data.item.previewVideos[index].url
+          styles: mainData.item.styles.map((style, index) => {
+            const matchingVideo = mainData.item.previewVideos.find((video) =>
+              video.styles.some((vStyle) => vStyle.tag === style.tag)
+            );
+
+            const videoUrl = matchingVideo
+              ? matchingVideo.url
+              : mainData.item.previewVideos[index]
+              ? mainData.item.previewVideos[index].url
               : null;
 
             return {
