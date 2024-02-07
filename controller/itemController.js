@@ -86,6 +86,8 @@ const getItemDetail = async (req, res) => {
       //   },
       // };
 
+      const mainData = response.data;
+
       const fullData = {
         ...mainData,
         item: {
