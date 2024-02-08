@@ -65,6 +65,13 @@ const loginAuth = async (req, res) => {
   }
 };
 
+const authenticateAuth = async (req, res) => {
+  res
+    .status(200)
+    .json({ success: true, message: "Welcome to the protected route!" });
+};
+
 module.exports = {
   loginAuth,
+  authenticateAuth,
 };
