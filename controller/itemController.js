@@ -239,6 +239,9 @@ const fetchAndStoreData = async () => {
           shopItem.price && shopItem.price.finalPrice
             ? shopItem.price.finalPrice
             : null,
+        release_date: shopItem.firstReleaseDate
+          ? shopItem.firstReleaseDate
+          : null,
         time_fetch: time_fetch,
         time_update: time_update,
         uid_update: uid_update ? uid_update : null,

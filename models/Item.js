@@ -22,6 +22,7 @@ const itemSchema = new mongoose.Schema({
   ],
   section_name: String,
   finalPrice: Number,
+  release_date: Date,
   time_fetch: Date,
   time_update: Date,
   uid_update: String,
