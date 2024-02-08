@@ -15,6 +15,7 @@ const { authRoute } = require("./routes/authRoute.js");
 const { routeNotFound } = require("./middleware/routeNotFound.js");
 
 const UserBalance = require("./models/userBalance");
+const { verifyAccessToken } = require("./middleware/verifyAccessToken.js");
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -145,6 +146,9 @@ app.post("api/dadaUsers/user_balance/:input", async (req, res) => {
 
 // app.use((req, res, next) => {
 //   res.status(404).json({ message: "Route Not Found" });
+// });
+// app.get("/api/v1/auth/protected", verifyAccessToken, (req, res) => {
+//   res.json({ message: "Welcome to the protected route!" });
 // });
 
 app.use(routeNotFound);
