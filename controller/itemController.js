@@ -142,17 +142,20 @@ const getItemDetail = async (req, res) => {
 
 const fetchAndStoreData = async () => {
   try {
-    const response = await axios.get("https://fortniteapi.io/v2/shop", {
-      headers: {
-        accept: "application/json",
-        Authorization: "40cb2d55-3b4133d9-f1708ca0-0f179353",
-      },
-      params: {
-        lang: "en",
-        includeRenderData: true,
-        includeHiddenTabs: false,
-      },
-    });
+    const response = await axios.get(
+      "https://fortniteapi.io/v2/shop?includeRenderData=false&includeHiddenTabs=false",
+      {
+        headers: {
+          accept: "application/json",
+          Authorization: "40cb2d55-3b4133d9-f1708ca0-0f179353",
+        },
+        params: {
+          lang: "en",
+          includeRenderData: true,
+          includeHiddenTabs: false,
+        },
+      }
+    );
 
     if (!response || !response.data || !response.data.shop) {
       return res.status(400).json({
@@ -191,7 +194,6 @@ const fetchAndStoreData = async () => {
         }
       }
 
-      // ตรวจสอบค่า null ก่อน map displayAssets
       const display_assets = shopItem.displayAssets
         ? shopItem.displayAssets.map((asset) => ({
             display_id: asset.displayAsset ? asset.displayAsset : null,
@@ -203,7 +205,6 @@ const fetchAndStoreData = async () => {
           }))
         : [];
 
-      // สร้าง object สำหรับ push โดยตรวจสอบค่า null ทุกครั้ง
       extractedItems.push({
         id: shopItem.mainId ? shopItem.mainId : null,
         type_id: shopItem.displayType ? shopItem.displayType : null,
@@ -299,8 +300,8 @@ const getItems = async (req, res) => {
     // console.log(cacheData);
 
     console.log("Get successful");
-    // if (true) {
-    if (!cacheData) {
+    if (true) {
+      // if (!cacheData) {
       const item = await Item.find({});
 
       if (!item) {
