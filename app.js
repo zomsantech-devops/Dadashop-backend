@@ -30,7 +30,7 @@ app.use("/api/v1/setting", settingRoute);
 
 // <---- Dadashop legacy
 
-app.get("/api/dadaUsers/user_balance", async (req, res) => {
+app.get("/api/v1/user-balance", async (req, res) => {
   console.log("Received request for userBalance");
   try {
     const userBalance = await UserBalance.find();
@@ -41,7 +41,7 @@ app.get("/api/dadaUsers/user_balance", async (req, res) => {
   }
 });
 
-app.post("/api/dadaUsers/user_balance", async (req, res) => {
+app.post("/api/v1/user-balance", async (req, res) => {
   const {
     id,
     discord_id,
@@ -74,7 +74,7 @@ app.post("/api/dadaUsers/user_balance", async (req, res) => {
   }
 });
 
-app.get("/api/dadaUsers/user_balance/:input", async (req, res) => {
+app.get("/api/v1/user-balance/:input", async (req, res) => {
   const userInput = req.params.input;
   try {
     let userBalance;
@@ -102,7 +102,7 @@ app.get("/api/dadaUsers/user_balance/:input", async (req, res) => {
   }
 });
 
-app.post("/api/dadaUsers/user_balance/:input", async (req, res) => {
+app.post("/api/v1/user-balance/:input", async (req, res) => {
   const userInput = req.params.input;
   const {
     discord_id,
