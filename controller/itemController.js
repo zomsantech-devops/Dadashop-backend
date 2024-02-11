@@ -147,7 +147,7 @@ const fetchAndStoreData = async () => {
       {
         headers: {
           accept: "application/json",
-          Authorization: "3945fead-522037f0-427f0ece-efeb4a37",
+          Authorization: "40cb2d55-3b4133d9-f1708ca0-0f179353",
         },
         params: {
           lang: "en",
