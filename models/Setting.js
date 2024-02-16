@@ -17,8 +17,8 @@ const ExchangeRate = mongoose.model("ExchangeRate", exchangeRateSchema);
 
 const settingSchema = new mongoose.Schema(
   {
-    open_time: { type: Date, required: true },
-    close_time: { type: Date, required: true },
+    open_time: { type: String, required: true },
+    close_time: { type: String, required: true },
     is_maintenance: { type: Boolean, default: false },
     is_available: { type: Boolean, default: true },
     status: {

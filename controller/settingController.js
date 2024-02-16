@@ -6,6 +6,50 @@ const Status = Object.freeze({
   MAINTENANCE: "MAINTENANCE",
 });
 
+const workerServiceTime = async (req, res) => {
+  try {
+    const setting = await ServiceTime.findOne();
+    if (!setting) {
+      return res.status(404).json({
+        success: false,
+        message: "Service time setting not found",
+      });
+    }
+
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Asia/Bangkok",
+    });
+    const currentTimeStr = formatter.format(now);
+
+    console.log(currentTimeStr);
+
+    console.log(setting.open_time, setting.close_time);
+
+    if (
+      currentTimeStr >= setting.open_time &&
+      currentTimeStr < setting.close_time
+    ) {
+      setting.status = Status.OPEN;
+    } else {
+      setting.status = Status.CLOSED;
+    }
+
+    await setting.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Service time status updated successfully",
+      data: setting,
+      now: currentTimeStr,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 const updateServiceTime = async (req, res) => {
   try {
     const { open_time, close_time, is_maintenance, is_available, status } =
@@ -112,12 +156,9 @@ const toggleServiceTime = async (req, res) => {
   }
 };
 
-const everyHalfHourlyServiceTime = async (req, res) => {
-  //
-};
-
 module.exports = {
   toggleServiceTime,
   updateServiceTime,
   getServiceTime,
+  workerServiceTime,
 };
