@@ -21,6 +21,9 @@ const settingSchema = new mongoose.Schema(
     close_time: { type: String, required: true },
     is_maintenance: { type: Boolean, default: false },
     is_available: { type: Boolean, default: true },
+    is_open_early: { type: Boolean, default: false },
+    is_close_early: { type: Boolean, default: false },
+    is_extended_hours: { type: Boolean, default: false },
     status: {
       type: String,
       enum: ["OPEN", "CLOSED", "MAINTENANCE"],

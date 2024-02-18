@@ -1,4 +1,5 @@
 const { ExchangeRate, ServiceTime } = require("../models/Setting");
+const moment = require("moment-timezone");
 
 const Status = Object.freeze({
   OPEN: "OPEN",
@@ -16,25 +17,37 @@ const workerServiceTime = async (req, res) => {
       });
     }
 
-    const now = new Date();
-    const formatter = new Intl.DateTimeFormat("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "Asia/Bangkok",
-    });
-    const currentTimeStr = formatter.format(now);
+    const now = moment().tz("Asia/Bangkok");
+    const openTime = moment(setting.open_time, "HH:mm");
+    const closeTime = moment(setting.close_time, "HH:mm");
+    const nextDayOpenTime = moment(setting.open_time, "HH:mm").add(1, "days");
 
-    console.log(currentTimeStr);
-
-    console.log(setting.open_time, setting.close_time);
-
-    if (
-      currentTimeStr >= setting.open_time &&
-      currentTimeStr < setting.close_time
-    ) {
-      setting.status = Status.OPEN;
+    if (setting.is_maintenance) {
+      setting.status = "MAINTENANCE";
     } else {
-      setting.status = Status.CLOSED;
+      if (
+        (setting.is_open_early && now.isBefore(openTime)) ||
+        now.isBetween(openTime, closeTime, null, "[]") ||
+        (setting.is_extended_hours && now.isAfter(closeTime))
+      ) {
+        setting.status = "OPEN";
+      } else {
+        setting.status = "CLOSED";
+      }
+
+      if (
+        setting.is_close_early &&
+        now.isAfter(openTime) &&
+        now.isBefore(closeTime)
+      ) {
+        setting.status = "CLOSED";
+      }
+
+      if (now.isAfter(nextDayOpenTime)) {
+        setting.is_open_early = false;
+        setting.is_close_early = false;
+        setting.is_extended_hours = false;
+      }
     }
 
     await setting.save();
@@ -43,13 +56,12 @@ const workerServiceTime = async (req, res) => {
       success: true,
       message: "Service time status updated successfully",
       data: setting,
-      now: currentTimeStr,
+      now: now.format("HH:mm"),
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 const updateServiceTime = async (req, res) => {
   try {
     const { open_time, close_time, is_maintenance, is_available, status } =
@@ -65,9 +77,9 @@ const updateServiceTime = async (req, res) => {
 
     if (open_time !== undefined) setting.open_time = open_time;
     if (close_time !== undefined) setting.close_time = close_time;
-    if (is_maintenance !== undefined) setting.is_maintenance = is_maintenance;
-    if (is_available !== undefined) setting.is_available = is_available;
-    if (status !== undefined) setting.status = status;
+    // if (is_maintenance !== undefined) setting.is_maintenance = is_maintenance;
+    // if (is_available !== undefined) setting.is_available = is_available;
+    // if (status !== undefined) setting.status = status;
 
     await setting.save();
     res.status(200).json({
@@ -103,45 +115,36 @@ const getServiceTime = async (req, res) => {
 const toggleServiceTime = async (req, res) => {
   try {
     const { settingStatus } = req.params;
-    console.log(req);
 
     const setting = await ServiceTime.findOne();
     if (!setting) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Setting not found",
       });
     }
 
-    if (settingStatus) {
-      switch (settingStatus) {
-        case Status.OPEN:
-          setting.status = Status.OPEN;
-          break;
-        case Status.CLOSED:
-          setting.status = Status.CLOSED;
-          break;
-        case Status.MAINTENANCE:
-          setting.status = Status.MAINTENANCE;
-          break;
-        default:
-          return res.status(400).json({
-            success: false,
-            message: "Invalid status value",
-          });
+    const now = moment().tz("Asia/Bangkok");
+    const openTime = moment(setting.open_time, "HH:mm");
+    const closeTime = moment(setting.close_time, "HH:mm");
+
+    if (settingStatus.toUpperCase() === Status.OPEN) {
+      setting.status = Status.OPEN;
+      setting.is_close_early = false;
+      if (now.isBefore(openTime)) {
+        setting.is_open_early = true;
+      } else if (now.isAfter(closeTime)) {
+        setting.is_extended_hours = true;
       }
-    } else {
-      switch (setting.status) {
-        case Status.OPEN:
-          setting.status = Status.CLOSED;
-          break;
-        case Status.CLOSED:
-          setting.status = Status.MAINTENANCE;
-          break;
-        case Status.MAINTENANCE:
-          setting.status = Status.OPEN;
-          break;
+    } else if (settingStatus.toUpperCase() === Status.CLOSED) {
+      setting.status = Status.CLOSED;
+      setting.is_open_early = false;
+      if (now.isAfter(openTime) && now.isBefore(closeTime)) {
+        setting.is_close_early = true;
       }
+      setting.is_extended_hours = false;
+    } else if (settingStatus.toUpperCase() === Status.MAINTENANCE) {
+      setting.status = Status.MAINTENANCE;
     }
 
     await setting.save();
