@@ -1,4 +1,4 @@
-const { ExchangeRate, ServiceTime } = require("../models/Setting");
+const { ServiceTime } = require("../models/Setting");
 const moment = require("moment-timezone");
 
 const Status = Object.freeze({
@@ -52,14 +52,14 @@ const workerServiceTime = async (req, res) => {
 
     await setting.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Service time status updated successfully",
       data: setting,
       now: now.format("HH:mm"),
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 const updateServiceTime = async (req, res) => {
@@ -69,7 +69,7 @@ const updateServiceTime = async (req, res) => {
 
     const setting = await ServiceTime.findOne();
     if (!setting) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Setting not found",
       });
@@ -82,13 +82,13 @@ const updateServiceTime = async (req, res) => {
     // if (status !== undefined) setting.status = status;
 
     await setting.save();
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: setting,
       message: "Update service time successfully",
     });
   } catch (error) {
-    res.status(500).send({ message: error.message });
+    return res.status(500).send({ message: error.message });
   }
 };
 
@@ -96,19 +96,19 @@ const getServiceTime = async (req, res) => {
   try {
     const setting = await ServiceTime.findOne();
     if (!setting) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Setting not found",
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: setting,
       message: "Update service time successfully",
     });
   } catch (error) {
-    res.status(500).send({ message: error.message });
+    return res.status(500).send({ message: error.message });
   }
 };
 
@@ -149,13 +149,13 @@ const toggleServiceTime = async (req, res) => {
 
     await setting.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: setting,
       message: "Toggle service time successfully",
     });
   } catch (error) {
-    res.status(500).send({ message: error.message });
+    return res.status(500).send({ message: error.message });
   }
 };
 

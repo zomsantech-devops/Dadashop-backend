@@ -34,7 +34,31 @@ const settingSchema = new mongoose.Schema(
 
 const ServiceTime = mongoose.model("ServiceTime", settingSchema);
 
+const presetSchema = new mongoose.Schema({
+  image: { type: String, required: true },
+  title: { type: String, required: true },
+  list: [
+    {
+      content: { type: String, required: true },
+      color: { type: String, required: true },
+    },
+  ],
+  button: {
+    name: { type: String, required: true },
+    link: { type: String, required: true },
+    color: {
+      from: { type: String, required: true },
+      via: { type: String, required: false },
+      to: { type: String, required: true },
+    },
+  },
+  preset_id: { type: Number, required: true },
+});
+
+const Preset = mongoose.model("Preset", presetSchema);
+
 module.exports = {
   ExchangeRate,
   ServiceTime,
+  Preset,
 };

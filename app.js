@@ -11,6 +11,7 @@ const { imageRoute } = require("./routes/imageRoute.js");
 const { itemRoute } = require("./routes/itemRoute.js");
 const { settingRoute } = require("./routes/settingRoute.js");
 const { authRoute } = require("./routes/authRoute.js");
+const { presetRoute } = require("./routes/presetRoute");
 
 const { routeNotFound } = require("./middleware/routeNotFound.js");
 
@@ -27,6 +28,8 @@ app.use("/api/v1/item", itemRoute);
 app.use("/api/v1/image", imageRoute);
 
 app.use("/api/v1/setting", settingRoute);
+
+app.use("/api/v1/preset", presetRoute);
 
 // <---- Dadashop legacy
 
