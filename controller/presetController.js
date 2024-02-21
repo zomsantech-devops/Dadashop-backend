@@ -2,12 +2,12 @@ const { Preset } = require("../models/Setting");
 
 const isValidHex = (color) => /^#([0-9A-F]{3}){1,2}$/i.test(color);
 
-const prepareColor = (color, prefix) => {
+const prepareColor = (color) => {
   color = color.toUpperCase();
   if (!isValidHex(color)) {
-    return `${prefix}[#5A5A5A]`;
+    return `#5A5A5A`;
   }
-  return `${prefix}[${color}]`;
+  return `${color}`;
 };
 
 const createPreset = async (req, res) => {
@@ -23,14 +23,14 @@ const createPreset = async (req, res) => {
 
     const listWithCorrectColors = req.body.list.map((item) => ({
       content: item.content,
-      color: prepareColor(item.color, "bg-"),
+      color: prepareColor(item.color),
     }));
 
     const buttonColors = req.body.button.color;
     const preparedButtonColors = {
-      from: prepareColor(buttonColors.from, "from-"),
-      to: prepareColor(buttonColors.to, "to-"),
-      via: prepareColor(buttonColors.via, "via-"),
+      from: prepareColor(buttonColors.from),
+      to: prepareColor(buttonColors.to),
+      via: prepareColor(buttonColors.via),
     };
 
     const newPreset = new Preset({
@@ -73,16 +73,16 @@ const updatePreset = async (req, res) => {
 
     const listWithCorrectColors = req.body.list.map((item) => ({
       content: item.content,
-      color: prepareColor(item.color, "bg-"),
+      color: prepareColor(item.color),
     }));
 
     const buttonColors = req.body.button.color;
     const preparedButtonColors = {
-      from: prepareColor(buttonColors.from, "from-"),
-      to: prepareColor(buttonColors.to, "to-"),
+      from: prepareColor(buttonColors.from),
+      to: prepareColor(buttonColors.to),
     };
     if (buttonColors.via) {
-      preparedButtonColors.via = prepareColor(buttonColors.via, "via-");
+      preparedButtonColors.via = prepareColor(buttonColors.via);
     }
 
     preset.image = req.body.image;
