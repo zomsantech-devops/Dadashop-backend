@@ -6,17 +6,16 @@ const app = express();
 // import itemRoute from "./route";
 // const userRoute = require("./route");
 // --es-module-specifier-resolution=node
-const { getImage } = require("./controller/imageController.js");
 const { imageRoute } = require("./routes/imageRoute.js");
 const { itemRoute } = require("./routes/itemRoute.js");
 const { settingRoute } = require("./routes/settingRoute.js");
 const { authRoute } = require("./routes/authRoute.js");
 const { presetRoute } = require("./routes/presetRoute");
+const { currencyRoute } = require("./routes/currencyRoute.js");
 
 const { routeNotFound } = require("./middleware/routeNotFound.js");
 
 const UserBalance = require("./models/userBalance");
-const { verifyAccessToken } = require("./middleware/verifyAccessToken.js");
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -30,6 +29,8 @@ app.use("/api/v1/image", imageRoute);
 app.use("/api/v1/setting", settingRoute);
 
 app.use("/api/v1/preset", presetRoute);
+
+// app.use("/api/v1/currency", currencyRoute);
 
 // <---- Dadashop legacy
 

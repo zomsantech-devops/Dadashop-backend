@@ -57,8 +57,17 @@ const presetSchema = new mongoose.Schema({
 
 const Preset = mongoose.model("Preset", presetSchema);
 
+const currencySchema = new mongoose.Schema({
+  min: { type: Number, required: true },
+  max: { type: Number, required: true },
+  rate: { type: Number, required: true },
+});
+
+const currencyRate = mongoose.model("currencyRate", currencySchema);
+
 module.exports = {
   ExchangeRate,
   ServiceTime,
   Preset,
+  currencyRate,
 };

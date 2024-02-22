@@ -7,11 +7,20 @@ const {
   getServiceTime,
   workerServiceTime,
 } = require("../controller/settingController");
+const {
+  createRate,
+  getRate,
+  updateRate,
+} = require("../controller/currencyController");
 
 router.post("/time", updateServiceTime);
 router.get("/time/worker", workerServiceTime);
 router.get("/time", getServiceTime);
 router.get("/time/toggle/:settingStatus", toggleServiceTime);
 router.get("/time/toggle", toggleServiceTime);
+
+// router.post("/currency", createRate);
+router.get("/currency", getRate);
+router.patch("/currency/:newRate", updateRate);
 
 module.exports = { settingRoute: router };
