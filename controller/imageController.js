@@ -8,13 +8,22 @@ const getImage = async (req, res) => {
     if (!image) {
       return res.status(404).send("Image not found");
     }
-    res.contentType(image.contentType);
-    res.send(image.data);
+
+    sharp(image.data)
+      .resize({ width: 1080 })
+      .webp({ quality: 85 })
+      .toBuffer()
+      .then((data) => {
+        res.contentType("image/webp");
+        res.send(data);
+      })
+      .catch((error) => {
+        console.error(error);
+        res.status(500).send("Error processing image");
+      });
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .json("There is something bad happening with image processing");
+    res.status(500).send("Server error");
   }
 };
 const getAllImage = async (req, res) => {
