@@ -35,12 +35,12 @@ const arrayRedisToJson = (data) => {
 const getItemDetail = async (req, res) => {
   const itemId = req.params.itemId;
 
-  const cacheKey = `itemr_${itemId}`;
-  console.log(cacheKey);
+  // const cacheKey = `itemr_${itemId}`;
+  // console.log(cacheKey);
   try {
-    const cacheData = await kv.get(cacheKey);
-    console.log("Get successful");
-    if (!cacheData) {
+    // const cacheData = await kv.get(cacheKey);
+    // console.log("Get successful");
+    if (true) {
       const response = await axios.get(
         `https://fortniteapi.io/v2/items/get?id=${itemId}&includeRenderData=true&lang=en`,
         {
@@ -69,11 +69,11 @@ const getItemDetail = async (req, res) => {
       // console.log(arrayRedisToJson(displayAssetsString), redisToJson(dataString))
 
       try {
-        console.log("Set successful");
-        await kv.set(`${cacheKey}_main`, dataString, { ex: 3600 });
-        await kv.set(`${cacheKey}_displayAssets`, displayAssetsString, {
-          ex: 3600,
-        });
+        // console.log("Set successful");
+        // await kv.set(`${cacheKey}_main`, dataString, { ex: 3600 });
+        // await kv.set(`${cacheKey}_displayAssets`, displayAssetsString, {
+        //   ex: 3600,
+        // });
       } catch (err) {
         console.log("Caching Error", err);
       }
@@ -254,16 +254,16 @@ const fetchAndStoreData = async () => {
     }
 
     try {
-      const time = new Date();
+      // const time = new Date();
 
-      cacheKey = `dater_${time.getDate()}-${time.getMonth()}`;
-      await kv.del(cacheKey);
+      // cacheKey = `dater_${time.getDate()}-${time.getMonth()}`;
+      // await kv.del(cacheKey);
 
-      const item = await Item.find({});
-      await kv.set(cacheKey, arrayJsonToRedis(item), {
-        ex: 1800,
-        nx: true,
-      });
+      // const item = await Item.find({});
+      // await kv.set(cacheKey, arrayJsonToRedis(item), {
+      //   ex: 1800,
+      //   nx: true,
+      // });
 
       console.log("Get Cache Reset Successfully");
       console.log("Set Cache Successful");
@@ -296,10 +296,8 @@ const getItems = async (req, res) => {
   const time = new Date();
   cacheKey = `dater_${time.getDate()}-${time.getMonth()}`;
   try {
-    const cacheData = await kv.get(cacheKey);
-    // console.log(cacheData);
-
-    console.log("Get successful");
+    // const cacheData = await kv.get(cacheKey);
+    // console.log("Get successful");
     if (true) {
       // if (!cacheData) {
       const item = await Item.find({});
@@ -312,10 +310,10 @@ const getItems = async (req, res) => {
       }
 
       try {
-        await kv.set(cacheKey, arrayJsonToRedis(item), {
-          ex: 1800,
-          nx: true,
-        });
+        // await kv.set(cacheKey, arrayJsonToRedis(item), {
+        //   ex: 1800,
+        //   nx: true,
+        // });
         console.log("Set Cache Successful");
       } catch (err) {
         console.log("Caching Error", err);
@@ -327,11 +325,11 @@ const getItems = async (req, res) => {
         .json({ success: true, data: item, source: "database" });
     }
 
-    return res.status(200).json({
-      success: true,
-      data: arrayRedisToJson(cacheData),
-      source: "cache",
-    });
+    // return res.status(200).json({
+    //   success: true,
+    //   data: arrayRedisToJson(cacheData),
+    //   source: "cache",
+    // });
   } catch (err) {
     return res.status(500).json({
       success: false,
