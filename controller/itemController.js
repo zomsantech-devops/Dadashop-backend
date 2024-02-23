@@ -35,12 +35,13 @@ const arrayRedisToJson = (data) => {
 const getItemDetail = async (req, res) => {
   const itemId = req.params.itemId;
 
-  // const cacheKey = `itemr_${itemId}`;
-  // console.log(cacheKey);
+  const cacheKey = `itemr_${itemId}`;
+  console.log(cacheKey);
   try {
-    // const cacheData = await kv.get(cacheKey);
-    // console.log("Get successful");
-    if (true) {
+    const cacheData = await kv.get(cacheKey);
+    console.log("Get successful");
+    console.log(cacheData);
+    if (!cacheData) {
       const response = await axios.get(
         `https://fortniteapi.io/v2/items/get?id=${itemId}&includeRenderData=true&lang=en`,
         {
@@ -65,12 +66,15 @@ const getItemDetail = async (req, res) => {
 
       const dataString = jsonToRedis(response.data);
 
-      // console.log(dataString, displayAssetsString)
-      // console.log(arrayRedisToJson(displayAssetsString), redisToJson(dataString))
+      console.log(dataString, displayAssetsString);
+      console.log(
+        arrayRedisToJson(displayAssetsString),
+        redisToJson(dataString)
+      );
 
       try {
         // console.log("Set successful");
-        // await kv.set(`${cacheKey}_main`, dataString, { ex: 3600 });
+        await kv.set(cacheKey, response.data.item.id, { ex: 3600 });
         // await kv.set(`${cacheKey}_displayAssets`, displayAssetsString, {
         //   ex: 3600,
         // });
@@ -119,19 +123,19 @@ const getItemDetail = async (req, res) => {
       });
     }
 
-    const mainDataString = await kv.get(`${cacheKey}_main`);
-    const displayAssetsString = await kv.get(`${cacheKey}_displayAssets`);
-    const mainData = redisToJson(mainDataString);
-    const displayAssetsData = arrayRedisToJson(displayAssetsString);
+    // const mainDataString = await kv.get(`${cacheKey}_main`);
+    // const displayAssetsString = await kv.get(`${cacheKey}_displayAssets`);
+    // const mainData = redisToJson(mainDataString);
+    // const displayAssetsData = arrayRedisToJson(displayAssetsString);
 
-    const fullData = {
-      ...mainData,
-      item: { ...mainData.item, displayAssets: displayAssetsData },
-    };
+    // const fullData = {
+    //   ...mainData,
+    //   item: { ...mainData.item, displayAssets: displayAssetsData },
+    // };
 
     return res
       .status(200)
-      .json({ success: true, data: fullData, source: "cache" });
+      .json({ success: true, data: cacheData, source: "cache" });
   } catch (err) {
     return res.status(500).json({
       success: false,

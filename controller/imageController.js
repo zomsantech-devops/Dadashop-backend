@@ -1,19 +1,34 @@
 const Image = require("../models/Image");
 const sharp = require("sharp");
+const path = require("path");
+const fs = require("fs");
+
+const cacheDir = path.join(__dirname, "cache");
+
+if (!fs.existsSync(cacheDir)) {
+  fs.mkdirSync(cacheDir);
+}
 
 const getImage = async (req, res) => {
   try {
     const { banner } = req.params;
+    const cachePath = path.join(cacheDir, `${banner}.webp`);
+
+    if (fs.existsSync(cachePath)) {
+      return res.sendFile(cachePath);
+    }
+
     const image = await Image.findOne({ name: banner });
     if (!image) {
       return res.status(404).send("Image not found");
     }
 
-    sharp(image.data)
+    sharp(image.data.buffer)
       .resize({ width: 1080 })
       .webp({ quality: 85 })
       .toBuffer()
       .then((data) => {
+        fs.writeFileSync(cachePath, data);
         res.contentType("image/webp");
         res.send(data);
       })
@@ -22,10 +37,11 @@ const getImage = async (req, res) => {
         res.status(500).send("Error processing image");
       });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).send("Server error");
   }
 };
+
 const getAllImage = async (req, res) => {
   try {
     const images = await Image.find({});
