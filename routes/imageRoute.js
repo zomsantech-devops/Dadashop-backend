@@ -15,7 +15,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 router.post("/:banner", upload.single("image"), verifyAccessToken, uploadImage);
-router.get("/:banner", compression(), getImage);
+router.get("/:banner", getImage);
 router.get("/", getAllImage);
 
 module.exports = { imageRoute: router };
