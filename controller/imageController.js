@@ -3,7 +3,7 @@ const sharp = require("sharp");
 const path = require("path");
 const fs = require("fs");
 
-const cacheDir = path.join(__dirname, "cache");
+const cacheDir = path.join("/tmp", "cache");
 
 if (!fs.existsSync(cacheDir)) {
   fs.mkdirSync(cacheDir);
