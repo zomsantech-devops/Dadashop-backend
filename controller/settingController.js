@@ -11,7 +11,7 @@ const serviceTime = async () => {
   try {
     const setting = await ServiceTime.findOne();
 
-    const now = moment().tz("Asia/Bangkok");
+    const now = moment.utc().add(7, "hours");
     const openTime = moment(setting.open_time, "HH:mm");
     const closeTime = moment(setting.close_time, "HH:mm");
 
@@ -68,7 +68,7 @@ const workerServiceTime = async (req, res) => {
   try {
     const setting = await serviceTime();
 
-    const now = moment().tz("Asia/Bangkok");
+    const now = moment.utc().add(7, "hours");
 
     return res.status(200).json({
       success: true,
@@ -108,7 +108,7 @@ const updateServiceTime = async (req, res) => {
 
     const settings = await serviceTime();
 
-    const now = moment().tz("Asia/Bangkok");
+    const now = moment.utc().add(7, "hours");
 
     return res.status(200).json({
       success: true,
@@ -131,7 +131,7 @@ const getServiceTime = async (req, res) => {
       });
     }
 
-    const now = moment().tz("Asia/Bangkok");
+    const now = moment.utc().add(7, "hours");
     const beforeNow = moment();
 
     return res.status(200).json({
@@ -158,7 +158,7 @@ const toggleServiceTime = async (req, res) => {
       });
     }
 
-    const now = moment().tz("Asia/Bangkok");
+    const now = moment.utc().add(7, "hours");
     const openTime = moment(setting.open_time, "HH:mm");
     const closeTime = moment(setting.close_time, "HH:mm");
 
