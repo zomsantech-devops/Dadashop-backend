@@ -132,14 +132,14 @@ const getServiceTime = async (req, res) => {
     }
 
     const now = moment().tz("Asia/Bangkok");
+    const beforeNow = moment();
 
     return res.status(200).json({
       success: true,
       data: setting,
       message: "Update service time successfully",
       now,
-      diffOpen: now.diff(setting.open_time),
-      diffClose: now.diff(setting.close_time),
+      beforeNow,
     });
   } catch (error) {
     return res.status(500).send({ message: error.message });
