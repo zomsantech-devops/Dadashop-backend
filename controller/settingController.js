@@ -124,6 +124,8 @@ const updateServiceTime = async (req, res) => {
 const getServiceTime = async (req, res) => {
   try {
     const setting = await ServiceTime.findOne();
+    const openTime = moment.utc(setting.open_time, "HH:mm").add(7, "hours");
+    const closeTime = moment.utc(setting.close_time, "HH:mm").add(7, "hours");
     if (!setting) {
       return res.status(400).json({
         success: false,
@@ -140,6 +142,8 @@ const getServiceTime = async (req, res) => {
       message: "Update service time successfully",
       now,
       beforeNow,
+      openTime,
+      closeTime,
     });
   } catch (error) {
     return res.status(500).send({ message: error.message });
