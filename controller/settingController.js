@@ -68,10 +68,13 @@ const workerServiceTime = async (req, res) => {
   try {
     const setting = await serviceTime();
 
+    const now = moment().tz("Asia/Bangkok");
+
     return res.status(200).json({
       success: true,
       message: "Service time status updated successfully",
       data: setting,
+      now,
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -105,10 +108,13 @@ const updateServiceTime = async (req, res) => {
 
     const settings = await serviceTime();
 
+    const now = moment().tz("Asia/Bangkok");
+
     return res.status(200).json({
       success: true,
       data: settings,
       message: "Update service time successfully",
+      now,
     });
   } catch (error) {
     return res.status(500).send({ message: error.message });
@@ -125,10 +131,15 @@ const getServiceTime = async (req, res) => {
       });
     }
 
+    const now = moment().tz("Asia/Bangkok");
+
     return res.status(200).json({
       success: true,
       data: setting,
       message: "Update service time successfully",
+      now,
+      diffOpen: now.diff(setting.open_time),
+      diffClose: now.diff(setting.close_time),
     });
   } catch (error) {
     return res.status(500).send({ message: error.message });
@@ -184,6 +195,7 @@ const toggleServiceTime = async (req, res) => {
       success: true,
       data: settings,
       message: "Toggle service time successfully",
+      now,
     });
   } catch (error) {
     return res.status(500).send({ message: error.message });
