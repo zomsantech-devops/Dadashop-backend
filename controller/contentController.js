@@ -65,7 +65,27 @@ const getContent = async (req, res) => {
   }
 };
 
+const getAllContent = async (req, res) => {
+  try {
+    const existingContent = await Content.find({});
+    if (!existingContent) {
+      return res.status(400).json({
+        success: false,
+        message: "Content not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: existingContent,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 module.exports = {
   updateContent,
   getContent,
+  getAllContent,
 };
