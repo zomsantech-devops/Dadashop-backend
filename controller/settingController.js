@@ -12,8 +12,8 @@ const serviceTime = async () => {
     const setting = await ServiceTime.findOne();
 
     const now = moment.utc().add(7, "hours");
-    const openTime = moment(setting.open_time, "HH:mm");
-    const closeTime = moment(setting.close_time, "HH:mm");
+    const openTime = moment.utc(setting.open_time, "HH:mm").add(1, "days");
+    const closeTime = moment.utc(setting.close_time, "HH:mm").add(1, "days");
 
     if (setting.is_maintenance) {
       setting.status = Status.MAINTENANCE;
@@ -124,6 +124,7 @@ const updateServiceTime = async (req, res) => {
 const getServiceTime = async (req, res) => {
   try {
     const setting = await ServiceTime.findOne();
+    const now = moment.utc().add(7, "hours");
     const openTime = moment.utc(setting.open_time, "HH:mm").add(1, "days");
     const closeTime = moment.utc(setting.close_time, "HH:mm").add(1, "days");
     if (!setting) {
@@ -133,7 +134,6 @@ const getServiceTime = async (req, res) => {
       });
     }
 
-    const now = moment.utc().add(7, "hours");
     const beforeNow = moment();
 
     return res.status(200).json({
@@ -141,7 +141,6 @@ const getServiceTime = async (req, res) => {
       data: setting,
       message: "Update service time successfully",
       now,
-      beforeNow,
       openTime,
       closeTime,
     });
@@ -163,8 +162,8 @@ const toggleServiceTime = async (req, res) => {
     }
 
     const now = moment.utc().add(7, "hours");
-    const openTime = moment(setting.open_time, "HH:mm");
-    const closeTime = moment(setting.close_time, "HH:mm");
+    const openTime = moment.utc(setting.open_time, "HH:mm").add(1, "days");
+    const closeTime = moment.utc(setting.close_time, "HH:mm").add(1, "days");
 
     setting.is_open_early = false;
     setting.is_close_early = false;
