@@ -39,9 +39,7 @@ const getItemDetail = async (req, res) => {
   console.log(cacheKey);
   try {
     const cacheData = await kv.get(cacheKey);
-    console.log("Get successful");
-    console.log(cacheData);
-    if (!cacheData) {
+    if (true) {
       const response = await axios.get(
         `https://fortniteapi.io/v2/items/get?id=${itemId}&includeRenderData=true&lang=en`,
         {
@@ -58,19 +56,7 @@ const getItemDetail = async (req, res) => {
           .json({ success: false, message: "Item not found" });
       }
 
-      const displayAssetsString = arrayJsonToRedis(
-        response.data.item.displayAssets
-      );
-
-      delete response.data.item.displayAssets;
-
-      const dataString = jsonToRedis(response.data);
-
-      console.log(dataString, displayAssetsString);
-      console.log(
-        arrayRedisToJson(displayAssetsString),
-        redisToJson(dataString)
-      );
+      // delete response.data.item.displayAssets;
 
       try {
         // console.log("Set successful");
@@ -82,21 +68,12 @@ const getItemDetail = async (req, res) => {
         console.log("Caching Error", err);
       }
 
-      // const fullData = {
-      //   ...response.data,
-      //   item: {
-      //     ...response.data.item,
-      //     displayAssets: arrayRedisToJson(displayAssetsString),
-      //   },
-      // };
-
       const mainData = response.data;
 
       const fullData = {
         ...mainData,
         item: {
           ...mainData.item,
-          displayAssets: arrayRedisToJson(displayAssetsString),
           styles: mainData.item.styles.map((style, index) => {
             const matchingVideo = mainData.item.previewVideos.find((video) =>
               video.styles.some((vStyle) => vStyle.tag === style.tag)
@@ -122,16 +99,6 @@ const getItemDetail = async (req, res) => {
         source: "database",
       });
     }
-
-    // const mainDataString = await kv.get(`${cacheKey}_main`);
-    // const displayAssetsString = await kv.get(`${cacheKey}_displayAssets`);
-    // const mainData = redisToJson(mainDataString);
-    // const displayAssetsData = arrayRedisToJson(displayAssetsString);
-
-    // const fullData = {
-    //   ...mainData,
-    //   item: { ...mainData.item, displayAssets: displayAssetsData },
-    // };
 
     return res
       .status(200)
