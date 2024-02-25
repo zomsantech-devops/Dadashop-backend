@@ -92,12 +92,17 @@ const uploadImage = async (req, res) => {
       .resize(1080)
       .webp({ quality: 100 })
       .toBuffer()
-      .then((webpData) => {
+      .then(async (webpData) => {
         image.data = webpData;
         image.contentType = "image/webp";
-        return image.save();
-      })
-      .then(() => {
+
+        await image.save();
+
+        const cachePath = path.join(cacheDir, `${banner}.webp`);
+        if (fs.existsSync(cachePath)) {
+          fs.unlinkSync(cachePath);
+        }
+
         res.json({
           success: true,
           message: "Image uploaded successfully!",
