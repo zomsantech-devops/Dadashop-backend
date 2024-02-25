@@ -18,6 +18,8 @@ const itemSchema = new mongoose.Schema({
       image_url: String,
       image_background: String,
       image_full_background: String,
+      parent_id: String,
+      parent_final_price: Number,
     },
   ],
   section_name: String,

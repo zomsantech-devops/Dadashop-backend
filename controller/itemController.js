@@ -173,6 +173,11 @@ const fetchAndStoreData = async () => {
             image_full_background: asset.full_background
               ? asset.full_background
               : null,
+            parent_id: shopItem.mainId ? shopItem.mainId : null,
+            parent_final_price:
+              shopItem.price && shopItem.price.finalPrice
+                ? shopItem.price.finalPrice
+                : null,
           }))
         : [];
 
