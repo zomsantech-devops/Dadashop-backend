@@ -70,6 +70,15 @@ const getItemDetail = async (req, res) => {
 
       const mainData = response.data;
 
+      if (mainData.item.grants && mainData.item.grants.length > 0) {
+        mainData.item.grants = mainData.item.grants.map((grant) => ({
+          ...grant,
+          parent_id: mainData.item.id,
+          parent_name: mainData.item.type.name,
+          parent_price: mainData.item.price,
+        }));
+      }
+
       const fullData = {
         ...mainData,
         item: {
