@@ -123,7 +123,7 @@ const updateServiceTime = async (req, res) => {
 
 const getServiceTime = async (req, res) => {
   try {
-    const setting = await ServiceTime.findOne();
+    const setting = await serviceTime();
     const now = moment.utc().add(7, "hours");
     const openTime = moment.utc(setting.open_time, "HH:mm");
     const closeTime = moment.utc(setting.close_time, "HH:mm");
@@ -133,8 +133,6 @@ const getServiceTime = async (req, res) => {
         message: "Setting not found",
       });
     }
-
-    const beforeNow = moment();
 
     return res.status(200).json({
       success: true,
