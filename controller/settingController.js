@@ -12,8 +12,8 @@ const serviceTime = async () => {
     const setting = await ServiceTime.findOne();
 
     const now = moment.utc().add(7, "hours");
-    const openTime = moment.utc(setting.open_time, "HH:mm");
-    const closeTime = moment.utc(setting.close_time, "HH:mm");
+    const openTime = moment.utc(setting.open_time, "HH:mm").add(1, "days");
+    const closeTime = moment.utc(setting.close_time, "HH:mm").add(1, "days");
 
     if (setting.is_maintenance) {
       setting.status = Status.MAINTENANCE;
@@ -52,8 +52,6 @@ const serviceTime = async () => {
       } else if (now.isAfter(openTime) && now.isBefore(closeTime)) {
         setting.is_extended_hours = false;
       }
-
-      await setting.save();
     }
 
     await setting.save();
@@ -125,8 +123,8 @@ const getServiceTime = async (req, res) => {
   try {
     const setting = await serviceTime();
     const now = moment.utc().add(7, "hours");
-    const openTime = moment.utc(setting.open_time, "HH:mm");
-    const closeTime = moment.utc(setting.close_time, "HH:mm");
+    const openTime = moment.utc(setting.open_time, "HH:mm").add(1, "days");
+    const closeTime = moment.utc(setting.close_time, "HH:mm").add(1, "days");
     if (!setting) {
       return res.status(400).json({
         success: false,
@@ -160,8 +158,8 @@ const toggleServiceTime = async (req, res) => {
     }
 
     const now = moment.utc().add(7, "hours");
-    const openTime = moment.utc(setting.open_time, "HH:mm");
-    const closeTime = moment.utc(setting.close_time, "HH:mm");
+    const openTime = moment.utc(setting.open_time, "HH:mm").add(1, "days");
+    const closeTime = moment.utc(setting.close_time, "HH:mm").add(1, "days");
 
     setting.is_open_early = false;
     setting.is_close_early = false;
@@ -176,7 +174,8 @@ const toggleServiceTime = async (req, res) => {
       }
     } else if (settingStatus.toUpperCase() === Status.CLOSED) {
       setting.status = Status.CLOSED;
-      if (now.isAfter(openTime) || now.isBefore(closeTime)) {
+      // if (now.isAfter(openTime) || now.isBefore(closeTime)) {
+      if (now.isAfter(openTime) && now.isBefore(closeTime)) {
         setting.is_close_early = true;
       }
     } else if (settingStatus.toUpperCase() === Status.MAINTENANCE) {
