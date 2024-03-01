@@ -52,7 +52,7 @@ const presetSchema = new mongoose.Schema({
       to: { type: String, required: true },
     },
   },
-  preset_id: { type: Number, required: true },
+  preset_id: { type: String, required: true },
 });
 
 const Preset = mongoose.model("Preset", presetSchema);
