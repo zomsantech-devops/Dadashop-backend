@@ -7,13 +7,34 @@ const Status = Object.freeze({
   MAINTENANCE: "MAINTENANCE",
 });
 
+const getLocalTime = (open_time, close_time) => {
+  const now = moment.utc().add(7, "hours");
+  let openTime = moment.utc(open_time, "HH:mm");
+  let closeTime = moment.utc(close_time, "HH:mm");
+
+  openTime = openTime.year(now.year()).month(now.month()).date(now.date());
+  closeTime = closeTime.year(now.year()).month(now.month()).date(now.date());
+
+  if (now.isAfter(closeTime)) {
+    openTime = openTime.add(1, "days");
+    closeTime = closeTime.add(1, "days");
+  }
+
+  return { now, openTime, closeTime };
+};
+
 const serviceTime = async () => {
   try {
     const setting = await ServiceTime.findOne();
 
-    const now = moment.utc().add(7, "hours");
-    const openTime = moment.utc(setting.open_time, "HH:mm").add(1, "days");
-    const closeTime = moment.utc(setting.close_time, "HH:mm").add(1, "days");
+    // const now = moment.utc().add(7, "hours");
+    // let openTime = moment.utc(setting.open_time, "HH:mm").add(1, "days");
+    // let closeTime = moment.utc(setting.close_time, "HH:mm").add(1, "days");
+
+    const { now, openTime, closeTime } = getLocalTime(
+      setting.open_time,
+      setting.close_time
+    );
 
     if (setting.is_maintenance) {
       setting.status = Status.MAINTENANCE;
@@ -66,7 +87,7 @@ const workerServiceTime = async (req, res) => {
   try {
     const setting = await serviceTime();
 
-    const now = moment.utc().add(7, "hours");
+    const { now } = getLocalTime(setting.open_time, setting.close_time);
 
     return res.status(200).json({
       success: true,
@@ -92,6 +113,8 @@ const updateServiceTime = async (req, res) => {
       });
     }
 
+    const { now } = getLocalTime(setting.open_time, setting.close_time);
+
     setting.is_open_early = false;
     setting.is_close_early = false;
     setting.is_extended_hours = false;
@@ -105,8 +128,6 @@ const updateServiceTime = async (req, res) => {
     await setting.save();
 
     const settings = await serviceTime();
-
-    const now = moment.utc().add(7, "hours");
 
     return res.status(200).json({
       success: true,
@@ -122,9 +143,10 @@ const updateServiceTime = async (req, res) => {
 const getServiceTime = async (req, res) => {
   try {
     const setting = await serviceTime();
-    const now = moment.utc().add(7, "hours");
-    const openTime = moment.utc(setting.open_time, "HH:mm").add(1, "days");
-    const closeTime = moment.utc(setting.close_time, "HH:mm").add(1, "days");
+    const { now, openTime, closeTime } = getLocalTime(
+      setting.open_time,
+      setting.close_time
+    );
     if (!setting) {
       return res.status(400).json({
         success: false,
@@ -157,9 +179,10 @@ const toggleServiceTime = async (req, res) => {
       });
     }
 
-    const now = moment.utc().add(7, "hours");
-    const openTime = moment.utc(setting.open_time, "HH:mm").add(1, "days");
-    const closeTime = moment.utc(setting.close_time, "HH:mm").add(1, "days");
+    const { now, openTime, closeTime } = getLocalTime(
+      setting.open_time,
+      setting.close_time
+    );
 
     setting.is_open_early = false;
     setting.is_close_early = false;
