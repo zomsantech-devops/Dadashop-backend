@@ -80,6 +80,32 @@ const getAllImage = async (req, res) => {
   }
 };
 
+const deleteImage = async (req, res) => {
+  try {
+    const { banner } = req.params;
+
+    const image = await Image.findOne({ name: banner });
+    if (!image) {
+      return res.status(404).send("Image not found");
+    }
+
+    await Image.deleteOne({ name: banner });
+
+    const cachePath = path.join(cacheDir, `${banner}.webp`);
+    if (fs.existsSync(cachePath)) {
+      fs.unlinkSync(cachePath);
+    }
+
+    res.json({
+      success: true,
+      message: "Image deleted successfully!",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "There was an error deleting the image" });
+  }
+};
+
 const uploadImage = async (req, res) => {
   try {
     const { banner } = req.params;
@@ -99,9 +125,10 @@ const uploadImage = async (req, res) => {
         await image.save();
 
         const cachePath = path.join(cacheDir, `${banner}.webp`);
-        if (fs.existsSync(cachePath)) {
-          fs.unlinkSync(cachePath);
-        }
+        fs.writeFileSync(cachePath, webpData);
+        // if (fs.existsSync(cachePath)) {
+        //   fs.unlinkSync(cachePath);
+        // }
 
         res.json({
           success: true,
@@ -122,4 +149,5 @@ module.exports = {
   getImage,
   uploadImage,
   getAllImage,
+  deleteImage,
 };

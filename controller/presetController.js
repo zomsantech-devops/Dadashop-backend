@@ -1,4 +1,11 @@
 const { Preset } = require("../models/Setting");
+const fs = require("fs");
+const path = require("path");
+
+const cacheDir = path.join("/tmp", "cache");
+if (!fs.existsSync(cacheDir)) {
+  fs.mkdirSync(cacheDir);
+}
 
 const isValidHex = (color) => /^#([0-9A-F]{3}){1,2}$/i.test(color);
 
@@ -98,6 +105,8 @@ const updatePreset = async (req, res) => {
 
     const updatedPreset = await preset.save();
 
+    fs.writeFileSync(cachePath, JSON.stringify(updatedPreset), "utf8");
+
     return res.status(200).json({
       success: true,
       data: updatedPreset,
@@ -127,6 +136,15 @@ const getAllPreset = async (req, res) => {
 const getPresetById = async (req, res) => {
   try {
     const { id } = req.params;
+    const cachePath = path.join(cacheDir, `preset-${id}.json`);
+
+    if (fs.existsSync(cachePath)) {
+      const cacheData = fs.readFileSync(cachePath, "utf8");
+      return res
+        .status(200)
+        .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
+    }
+
     const preset = await Preset.findOne({ preset_id: id });
 
     if (!preset) {
@@ -135,6 +153,8 @@ const getPresetById = async (req, res) => {
         message: "Preset not found with the given ID.",
       });
     }
+
+    fs.writeFileSync(cachePath, JSON.stringify(preset), "utf8");
 
     return res.status(200).json({
       success: true,
@@ -145,9 +165,34 @@ const getPresetById = async (req, res) => {
   }
 };
 
+const deletePreset = async (req, res) => {
+  const { id } = req.params;
+
+  const preset = await Preset.findOne({ preset_id: id });
+  if (!preset) {
+    return res.status(404).json({
+      success: false,
+      message: "Preset not found",
+    });
+  }
+
+  const filePath = path.join(cacheDir, `preset-${id}.json`);
+
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
+
+  await Preset.deleteOne({ preset_id: id });
+
+  return res
+    .status(200)
+    .json({ success: true, message: "Preset deleted successfully" });
+};
+
 module.exports = {
   createPreset,
   updatePreset,
   getAllPreset,
   getPresetById,
+  deletePreset,
 };

@@ -1,6 +1,13 @@
 const Item = require("../models/Item");
 const axios = require("axios");
 const { kv } = require("@vercel/kv");
+const fs = require("fs");
+const path = require("path");
+
+const cacheDir = path.join("/tmp", "cache");
+if (!fs.existsSync(cacheDir)) {
+  fs.mkdirSync(cacheDir);
+}
 
 const scheduledTask = () => {
   const now = new Date();
@@ -35,83 +42,73 @@ const arrayRedisToJson = (data) => {
 const getItemDetail = async (req, res) => {
   const itemId = req.params.itemId;
 
-  const cacheKey = `itemr_${itemId}`;
-  console.log(cacheKey);
+  const cachePath = path.join(cacheDir, `${itemId}.json`);
+
   try {
-    const cacheData = await kv.get(cacheKey);
-    if (true) {
-      const response = await axios.get(
-        `https://fortniteapi.io/v2/items/get?id=${itemId}&includeRenderData=true&lang=en`,
-        {
-          headers: {
-            accept: "application/json",
-            Authorization: "3945fead-522037f0-427f0ece-efeb4a37",
-          },
-        }
-      );
-
-      if (!response.data || !response.data.item) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Item not found" });
-      }
-
-      // delete response.data.item.displayAssets;
-
-      try {
-        // console.log("Set successful");
-        await kv.set(cacheKey, response.data.item.id, { ex: 3600 });
-        // await kv.set(`${cacheKey}_displayAssets`, displayAssetsString, {
-        //   ex: 3600,
-        // });
-      } catch (err) {
-        console.log("Caching Error", err);
-      }
-
-      const mainData = response.data;
-
-      if (mainData.item.grants && mainData.item.grants.length > 0) {
-        mainData.item.grants = mainData.item.grants.map((grant) => ({
-          ...grant,
-          parent_id: mainData.item.id,
-          parent_name: mainData.item.type.name,
-          parent_price: mainData.item.price,
-        }));
-      }
-
-      const fullData = {
-        ...mainData,
-        item: {
-          ...mainData.item,
-          styles: mainData.item.styles.map((style, index) => {
-            const matchingVideo = mainData.item.previewVideos.find((video) =>
-              video.styles.some((vStyle) => vStyle.tag === style.tag)
-            );
-
-            const videoUrl = matchingVideo
-              ? matchingVideo.url
-              : mainData.item.previewVideos[index]
-              ? mainData.item.previewVideos[index].url
-              : null;
-
-            return {
-              ...style,
-              video_url: videoUrl,
-            };
-          }),
-        },
-      };
-
-      return res.status(200).json({
-        success: true,
-        data: fullData,
-        source: "database",
-      });
+    if (fs.existsSync(cachePath)) {
+      const cacheData = fs.readFileSync(cachePath, "utf8");
+      return res
+        .status(200)
+        .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
     }
 
-    return res
-      .status(200)
-      .json({ success: true, data: cacheData, source: "cache" });
+    const response = await axios.get(
+      `https://fortniteapi.io/v2/items/get?id=${itemId}&includeRenderData=true&lang=en`,
+      {
+        headers: {
+          accept: "application/json",
+          Authorization: "3945fead-522037f0-427f0ece-efeb4a37",
+        },
+      }
+    );
+
+    if (!response.data || !response.data.item) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Item not found" });
+    }
+
+    const mainData = response.data;
+
+    if (mainData.item.grants && mainData.item.grants.length > 0) {
+      mainData.item.grants = mainData.item.grants.map((grant) => ({
+        ...grant,
+        parent_id: mainData.item.id,
+        parent_name: mainData.item.type.name,
+        parent_price: mainData.item.price,
+      }));
+    }
+
+    const fullData = {
+      ...mainData,
+      item: {
+        ...mainData.item,
+        styles: mainData.item.styles.map((style, index) => {
+          const matchingVideo = mainData.item.previewVideos.find((video) =>
+            video.styles.some((vStyle) => vStyle.tag === style.tag)
+          );
+
+          const videoUrl = matchingVideo
+            ? matchingVideo.url
+            : mainData.item.previewVideos[index]
+            ? mainData.item.previewVideos[index].url
+            : null;
+
+          return {
+            ...style,
+            video_url: videoUrl,
+          };
+        }),
+      },
+    };
+
+    fs.writeFileSync(cachePath, JSON.stringify(fullData), "utf8");
+
+    return res.status(200).json({
+      success: true,
+      data: fullData,
+      source: "database",
+    });
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -278,43 +275,19 @@ const initialize = async (req, res) => {
 };
 
 const getItems = async (req, res) => {
-  const time = new Date();
-  cacheKey = `dater_${time.getDate()}-${time.getMonth()}`;
   try {
-    // const cacheData = await kv.get(cacheKey);
-    // console.log("Get successful");
-    if (true) {
-      // if (!cacheData) {
-      const item = await Item.find({});
+    const item = await Item.find({});
 
-      if (!item) {
-        return res.status(400).json({
-          success: false,
-          message: "Item not found, please fetch data again",
-        });
-      }
-
-      try {
-        // await kv.set(cacheKey, arrayJsonToRedis(item), {
-        //   ex: 1800,
-        //   nx: true,
-        // });
-        console.log("Set Cache Successful");
-      } catch (err) {
-        console.log("Caching Error", err);
-        return res.status(500);
-      }
-
-      return res
-        .status(200)
-        .json({ success: true, data: item, source: "database" });
+    if (!item) {
+      return res.status(400).json({
+        success: false,
+        message: "Item not found, please fetch data again",
+      });
     }
 
-    // return res.status(200).json({
-    //   success: true,
-    //   data: arrayRedisToJson(cacheData),
-    //   source: "cache",
-    // });
+    return res
+      .status(200)
+      .json({ success: true, data: item, source: "database" });
   } catch (err) {
     return res.status(500).json({
       success: false,

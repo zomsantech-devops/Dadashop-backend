@@ -6,11 +6,15 @@ const {
   getAllPreset,
   updatePreset,
   getPresetById,
+  deletePreset,
 } = require("../controller/presetController");
 
-router.post("/", createPreset);
+const { verifyAccessToken } = require("../middleware/verifyAccessToken");
+
+router.post("/", verifyAccessToken, createPreset);
+router.delete("/:id", verifyAccessToken, deletePreset);
 router.get("/", getAllPreset);
 router.get("/:id", getPresetById);
-router.patch("/:id", updatePreset);
+router.patch("/:id", verifyAccessToken, updatePreset);
 
 module.exports = { presetRoute: router };

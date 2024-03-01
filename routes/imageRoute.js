@@ -2,6 +2,7 @@ const {
   getImage,
   uploadImage,
   getAllImage,
+  deleteImage,
 } = require("../controller/imageController");
 
 const express = require("express");
@@ -15,6 +16,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 router.post("/:banner", upload.single("image"), verifyAccessToken, uploadImage);
+router.delete("/:banner", verifyAccessToken, deleteImage);
 router.get("/:banner", compression(), getImage);
 router.get("/", getAllImage);
 
