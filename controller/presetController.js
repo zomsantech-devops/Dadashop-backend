@@ -68,6 +68,7 @@ const createPreset = async (req, res) => {
 
 const updatePreset = async (req, res) => {
   const { id } = req.params;
+  const cachePath = path.join(cacheDir, `preset-${id}.json`);
 
   try {
     const preset = await Preset.findOne({ preset_id: id });
@@ -100,8 +101,6 @@ const updatePreset = async (req, res) => {
       link: req.body.button.link,
       color: preparedButtonColors,
     };
-
-    console.log(preset);
 
     const updatedPreset = await preset.save();
 
@@ -146,6 +145,7 @@ const getPresetById = async (req, res) => {
     }
 
     const preset = await Preset.findOne({ preset_id: id });
+    console.log(preset);
 
     if (!preset) {
       return res.status(404).json({

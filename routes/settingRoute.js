@@ -16,6 +16,7 @@ const {
   updateContent,
   getContent,
   getAllContent,
+  deleteContent,
 } = require("../controller/contentController");
 
 router.post("/time", updateServiceTime);
@@ -30,6 +31,7 @@ router.patch("/currency/:newRate", updateRate);
 
 router.post("/content/:name", updateContent);
 router.get("/content/:name", getContent);
+router.delete("/content/:name", deleteContent);
 router.get("/content", getAllContent);
 
 module.exports = { settingRoute: router };
