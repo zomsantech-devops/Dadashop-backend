@@ -45,13 +45,14 @@ const presetSchema = new mongoose.Schema({
   ],
   button: {
     name: { type: String, required: true },
-    link: { type: String, required: true },
+    link: { type: String, required: false },
     color: {
-      from: { type: String, required: true },
+      from: { type: String, required: false },
       via: { type: String, required: false },
-      to: { type: String, required: true },
+      to: { type: String, required: false },
     },
   },
+  location: { type: String, required: false },
   preset_id: { type: String, required: true },
 });
 

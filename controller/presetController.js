@@ -49,6 +49,7 @@ const createPreset = async (req, res) => {
         link: req.body.button.link,
         color: preparedButtonColors,
       },
+      location: req.body.location,
       preset_id: req.body.preset_id,
     });
 
@@ -79,29 +80,55 @@ const updatePreset = async (req, res) => {
       });
     }
 
-    const listWithCorrectColors = req.body.list.map((item) => ({
-      content: item.content,
-      color: prepareColor(item.color),
-    }));
-
-    const buttonColors = req.body.button.color;
-    const preparedButtonColors = {
-      from: prepareColor(buttonColors.from),
-      to: prepareColor(buttonColors.to),
-    };
-    if (buttonColors.via) {
-      preparedButtonColors.via = prepareColor(buttonColors.via);
+    const validLocations = ["price-fortnite", "price-other"];
+    const location = req.body.location;
+    if (location !== null && !validLocations.includes(location)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid location value. Must be 'price-fortnite' or 'price-other'.",
+      });
     }
 
-    preset.image = req.body.image;
-    preset.title = req.body.title;
-    preset.list = listWithCorrectColors;
-    preset.button = {
-      name: req.body.button.name,
-      link: req.body.button.link,
-      color: preparedButtonColors,
-    };
-    preset.preset_id = req.body.preset_id;
+    preset.location = location !== null ? location : preset.location;
+    preset.image = req.body.image !== null ? req.body.image : preset.image;
+    preset.title = req.body.title !== null ? req.body.title : preset.title;
+    preset.preset_id =
+      req.body.preset_id !== null ? req.body.preset_id : preset.preset_id;
+
+    if (req.body.list !== null) {
+      const listWithCorrectColors = req.body.list.map((item) => ({
+        content: item.content,
+        color: prepareColor(item.color),
+      }));
+      preset.list = listWithCorrectColors;
+    }
+
+    if (req.body.button !== null) {
+      const buttonColors = req.body.button.color;
+      const preparedButtonColors = {
+        from: buttonColors.from
+          ? prepareColor(buttonColors.from)
+          : preset.button.color.from,
+        to: buttonColors.to
+          ? prepareColor(buttonColors.to)
+          : preset.button.color.to,
+      };
+      if (buttonColors.via) {
+        preparedButtonColors.via = prepareColor(buttonColors.via);
+      }
+      preset.button = {
+        name:
+          req.body.button.name !== null
+            ? req.body.button.name
+            : preset.button.name,
+        link:
+          req.body.button.link !== null
+            ? req.body.button.link
+            : preset.button.link,
+        color: preparedButtonColors,
+      };
+    }
 
     const updatedPreset = await preset.save();
 
@@ -109,7 +136,12 @@ const updatePreset = async (req, res) => {
       fs.unlinkSync(cachePath);
     }
 
-    fs.writeFileSync(cachePath, JSON.stringify(updatedPreset), "utf8");
+    if (updatePreset.preset_id) {
+      const newCachePath = updatePreset.preset_id;
+      fs.writeFileSync(newCachePath, JSON.stringify(updatedPreset), "utf8");
+    } else {
+      fs.writeFileSync(cachePath, JSON.stringify(updatedPreset), "utf8");
+    }
 
     return res.status(200).json({
       success: true,
@@ -150,7 +182,6 @@ const getPresetById = async (req, res) => {
     }
 
     const preset = await Preset.findOne({ preset_id: id });
-    console.log(preset);
 
     if (!preset) {
       return res.status(404).json({
