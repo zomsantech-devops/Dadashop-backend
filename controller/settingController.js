@@ -15,10 +15,10 @@ const getLocalTime = (open_time, close_time) => {
   openTime = openTime.year(now.year()).month(now.month()).date(now.date());
   closeTime = closeTime.year(now.year()).month(now.month()).date(now.date());
 
-  if (now.isAfter(closeTime)) {
-    openTime = openTime.add(1, "days");
-    closeTime = closeTime.add(1, "days");
-  }
+  // if (now.isAfter(closeTime)) {
+  //   openTime = openTime.add(1, "days");
+  //   closeTime = closeTime.add(1, "days");
+  // }
 
   return { now, openTime, closeTime };
 };
@@ -36,12 +36,20 @@ const serviceTime = async () => {
       setting.close_time
     );
 
+    if (now.isBefore(openTime)) {
+      setting.is_close_early = false;
+    } else if (now.isAfter(closeTime)) {
+      setting.is_open_early = false;
+    } else if (now.isAfter(openTime) && now.isBefore(closeTime)) {
+      setting.is_extended_hours = false;
+    }
+
     if (setting.is_maintenance) {
       setting.status = Status.MAINTENANCE;
     } else {
       if (
-        setting.is_close_early &&
-        (now.isAfter(openTime) || now.isBefore(closeTime))
+        setting.is_close_early
+        // && (now.isAfter(openTime) || now.isBefore(closeTime))
       ) {
         setting.status = Status.CLOSED;
       } else if (
@@ -65,14 +73,6 @@ const serviceTime = async () => {
       //   setting.is_extended_hours = false;
       //   // after today open && before today close
       // }
-
-      if (now.isBefore(openTime)) {
-        setting.is_close_early = false;
-      } else if (now.isAfter(closeTime)) {
-        setting.is_open_early = false;
-      } else if (now.isAfter(openTime) && now.isBefore(closeTime)) {
-        setting.is_extended_hours = false;
-      }
     }
 
     await setting.save();
