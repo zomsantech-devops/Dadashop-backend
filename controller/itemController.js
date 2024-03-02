@@ -236,17 +236,6 @@ const fetchAndStoreData = async () => {
     }
 
     try {
-      // const time = new Date();
-
-      // cacheKey = `dater_${time.getDate()}-${time.getMonth()}`;
-      // await kv.del(cacheKey);
-
-      // const item = await Item.find({});
-      // await kv.set(cacheKey, arrayJsonToRedis(item), {
-      //   ex: 1800,
-      //   nx: true,
-      // });
-
       console.log("Get Cache Reset Successfully");
       console.log("Set Cache Successful");
       return { new: Date() };

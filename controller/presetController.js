@@ -101,8 +101,13 @@ const updatePreset = async (req, res) => {
       link: req.body.button.link,
       color: preparedButtonColors,
     };
+    preset.preset_id = req.body.preset_id;
 
     const updatedPreset = await preset.save();
+
+    if (fs.existsSync(cachePath)) {
+      fs.unlinkSync(cachePath);
+    }
 
     fs.writeFileSync(cachePath, JSON.stringify(updatedPreset), "utf8");
 
