@@ -11,7 +11,7 @@ const updateContent = async (req, res) => {
   try {
     const { name } = req.params;
     const { content } = req.body;
-    const cachePath = path.join(cacheDir, `content-${id}.json`);
+    const cachePath = path.join(cacheDir, `content-${name}.json`);
 
     if (!name || !content) {
       return res
@@ -53,7 +53,7 @@ const updateContent = async (req, res) => {
 const getContent = async (req, res) => {
   try {
     const { name } = req.params;
-    const cachePath = path.join(cacheDir, `content-${id}.json`);
+    const cachePath = path.join(cacheDir, `content-${name}.json`);
 
     if (!name) {
       return res
@@ -90,7 +90,7 @@ const getContent = async (req, res) => {
 const deleteContent = async (req, res) => {
   try {
     const { name } = req.params;
-    const cachePath = path.join(cacheDir, `content-${id}.json`);
+    const cachePath = path.join(cacheDir, `content-${name}.json`);
 
     if (!name) {
       return res
