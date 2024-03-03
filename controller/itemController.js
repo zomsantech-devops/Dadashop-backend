@@ -231,20 +231,13 @@ const fetchAndStoreData = async () => {
       });
     });
 
+    await Item.deleteMany({});
+
     for (let item of extractedItems) {
       await Item.create(item);
     }
 
-    try {
-      console.log("Get Cache Reset Successfully");
-      console.log("Set Cache Successful");
-      return { new: Date() };
-    } catch (err) {
-      console.log("Caching Error", err);
-      // res.status(500);
-    }
-
-    return { time_update };
+    return { time_update, data };
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -254,12 +247,13 @@ const fetchAndStoreData = async () => {
 };
 
 const initialize = async (req, res) => {
-  await Item.deleteMany({});
-  const response = await fetchAndStoreData();
+  // await Item.deleteMany({});
+  const { time_update, data } = await fetchAndStoreData();
 
   res.json({
     success: true,
-    time: response,
+    time: time_update,
+    data: data,
   });
 };
 
@@ -302,9 +296,7 @@ const dailyCheckUpdatedItem = async (req, res) => {
 
     const latestItem = await Item.findOne().sort({ time_update: -1 });
     const currentTimeUpdate = latestItem ? latestItem.time_update : null;
-
     const apiLastUpdate = new Date(response.data.lastUpdate.date);
-    console.log(`API Last Update: ${apiLastUpdate}`);
 
     if (!currentTimeUpdate || apiLastUpdate > currentTimeUpdate) {
       console.log("Data has been changed, Updating database...");
