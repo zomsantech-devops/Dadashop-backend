@@ -253,7 +253,8 @@ const initialize = async (req, res) => {
   res.json({
     success: true,
     time: time_update,
-    data: data,
+    response_success: data.result,
+    response_length: data.shop.length,
   });
 };
 
