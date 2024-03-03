@@ -3,6 +3,7 @@ const axios = require("axios");
 const { kv } = require("@vercel/kv");
 const fs = require("fs");
 const path = require("path");
+const moment = require("moment-timezone");
 
 const cacheDir = path.join("/tmp", "cache");
 if (!fs.existsSync(cacheDir)) {
@@ -260,6 +261,19 @@ const initialize = async (req, res) => {
 
 const getItems = async (req, res) => {
   try {
+    const now = moment.utc();
+    const cachePath = path.join(
+      cacheDir,
+      `${now.date()}-${now.month()}-${now.year()}.json`
+    );
+
+    if (fs.existsSync(cachePath)) {
+      const cacheData = fs.readFileSync(cachePath, "utf8");
+      return res
+        .status(200)
+        .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
+    }
+
     const item = await Item.find({});
 
     if (!item) {
@@ -268,6 +282,8 @@ const getItems = async (req, res) => {
         message: "Item not found, please fetch data again",
       });
     }
+
+    fs.writeFileSync(cachePath, JSON.stringify(item), "utf8");
 
     return res
       .status(200)
