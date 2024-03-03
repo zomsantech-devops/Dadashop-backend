@@ -120,20 +120,17 @@ const getItemDetail = async (req, res) => {
 
 const fetchAndStoreData = async () => {
   try {
-    const response = await axios.get(
-      "https://fortniteapi.io/v2/shop?includeRenderData=false&includeHiddenTabs=false",
-      {
-        headers: {
-          accept: "application/json",
-          Authorization: "40cb2d55-3b4133d9-f1708ca0-0f179353",
-        },
-        params: {
-          lang: "en",
-          includeRenderData: true,
-          includeHiddenTabs: false,
-        },
-      }
-    );
+    const response = await axios.get("https://fortniteapi.io/v2/shop", {
+      headers: {
+        accept: "application/json",
+        Authorization: "40cb2d55-3b4133d9-f1708ca0-0f179353",
+      },
+      params: {
+        lang: "en",
+        includeRenderData: true,
+        includeHiddenTabs: false,
+      },
+    });
 
     if (!response || !response.data || !response.data.shop) {
       return res.status(400).json({
@@ -155,6 +152,7 @@ const fetchAndStoreData = async () => {
         shopItem.displayAssets && shopItem.displayAssets[0]
           ? shopItem.displayAssets[0].background
           : null;
+
       let images_full_background =
         shopItem.displayAssets && shopItem.displayAssets[0]
           ? shopItem.displayAssets[0].full_background
@@ -238,7 +236,7 @@ const fetchAndStoreData = async () => {
       await Item.create(item);
     }
 
-    return { time_update, data };
+    return { time_update };
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -249,13 +247,11 @@ const fetchAndStoreData = async () => {
 
 const initialize = async (req, res) => {
   // await Item.deleteMany({});
-  const { time_update, data } = await fetchAndStoreData();
+  const { time_update } = await fetchAndStoreData();
 
   res.json({
     success: true,
     time: time_update,
-    response_success: data.result,
-    response_length: data.shop.length,
   });
 };
 
