@@ -132,6 +132,11 @@ const updatePreset = async (req, res) => {
 
     const updatedPreset = await preset.save();
 
+    res.status(200).json({
+      success: true,
+      data: updatedPreset,
+    });
+
     if (fs.existsSync(cachePath)) {
       fs.unlinkSync(cachePath);
     }
@@ -142,11 +147,7 @@ const updatePreset = async (req, res) => {
     } else {
       fs.writeFileSync(cachePath, JSON.stringify(updatedPreset), "utf8");
     }
-
-    return res.status(200).json({
-      success: true,
-      data: updatedPreset,
-    });
+    return;
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
@@ -190,12 +191,13 @@ const getPresetById = async (req, res) => {
       });
     }
 
-    fs.writeFileSync(cachePath, JSON.stringify(preset), "utf8");
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       data: preset,
     });
+
+    fs.writeFileSync(cachePath, JSON.stringify(preset), "utf8");
+    return;
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
@@ -212,17 +214,18 @@ const deletePreset = async (req, res) => {
     });
   }
 
-  const filePath = path.join(cacheDir, `preset-${id}.json`);
-
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
-  }
+  const cachePath = path.join(cacheDir, `preset-${id}.json`);
 
   await Preset.deleteOne({ preset_id: id });
 
-  return res
+  res
     .status(200)
     .json({ success: true, message: "Preset deleted successfully" });
+
+  if (fs.existsSync(cachePath)) {
+    fs.unlinkSync(cachePath);
+  }
+  return;
 };
 
 module.exports = {
