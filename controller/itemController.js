@@ -46,12 +46,12 @@ const getItemDetail = async (req, res) => {
   const cachePath = path.join(cacheDir, `${itemId}.json`);
 
   try {
-    if (fs.existsSync(cachePath)) {
-      const cacheData = fs.readFileSync(cachePath, "utf8");
-      return res
-        .status(200)
-        .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
-    }
+    // if (fs.existsSync(cachePath)) {
+    //   const cacheData = fs.readFileSync(cachePath, "utf8");
+    //   return res
+    //     .status(200)
+    //     .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
+    // }
 
     const response = await axios.get(
       `https://fortniteapi.io/v2/items/get?id=${itemId}&includeRenderData=true&lang=en`,
@@ -103,7 +103,7 @@ const getItemDetail = async (req, res) => {
       },
     };
 
-    fs.writeFileSync(cachePath, JSON.stringify(fullData), "utf8");
+    // fs.writeFileSync(cachePath, JSON.stringify(fullData), "utf8");
 
     return res.status(200).json({
       success: true,
