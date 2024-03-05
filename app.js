@@ -17,8 +17,15 @@ const { routeNotFound } = require("./middleware/routeNotFound.js");
 
 const UserBalance = require("./models/userBalance");
 
+const corsOptions = {
+  origin: ["https://dadashop-frontend.vercel.app/", "http://localhost:3000/"],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
 app.use(bodyParser.json());
-app.use(cors());
+
+app.use(cors(corsOptions));
 
 app.use("/api/v1/auth", authRoute);
 
