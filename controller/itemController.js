@@ -43,15 +43,15 @@ const arrayRedisToJson = (data) => {
 const getItemDetail = async (req, res) => {
   const itemId = req.params.itemId;
 
-  const cachePath = path.join(cacheDir, `${itemId}.json`);
+  const cachePath = path.join(cacheDir, `item-${itemId}.json`);
 
   try {
-    // if (fs.existsSync(cachePath)) {
-    //   const cacheData = fs.readFileSync(cachePath, "utf8");
-    //   return res
-    //     .status(200)
-    //     .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
-    // }
+    if (fs.existsSync(cachePath)) {
+      const cacheData = fs.readFileSync(cachePath, "utf8");
+      return res
+        .status(200)
+        .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
+    }
 
     const response = await axios.get(
       `https://fortniteapi.io/v2/items/get?id=${itemId}&includeRenderData=true&lang=en`,
