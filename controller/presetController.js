@@ -70,6 +70,7 @@ const createPreset = async (req, res) => {
 const updatePreset = async (req, res) => {
   const { id } = req.params;
   const cachePath = path.join(cacheDir, `preset-${id}.json`);
+  const cachePathAll = path.join(cacheDir, `preset.json`);
 
   try {
     const preset = await Preset.findOne({ preset_id: id });
@@ -139,6 +140,7 @@ const updatePreset = async (req, res) => {
 
     if (fs.existsSync(cachePath)) {
       fs.unlinkSync(cachePath);
+      fs.unlinkSync(cachePathAll);
     }
 
     if (updatePreset.preset_id) {
@@ -155,16 +157,26 @@ const updatePreset = async (req, res) => {
 
 const getAllPreset = async (req, res) => {
   try {
+    const cachePath = path.join(cacheDir, `preset.json`);
+
+    if (fs.existsSync(cachePath)) {
+      const cacheData = fs.readFileSync(cachePath, "utf8");
+      return res
+        .status(200)
+        .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
+    }
     const presets = await Preset.find({});
     if (!presets) {
       return res
         .status(400)
         .json({ success: false, message: "Can't find any preset" });
     }
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       data: presets,
     });
+    fs.writeFileSync(cachePath, JSON.stringify(presets), "utf8");
+    return;
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
@@ -205,6 +217,8 @@ const getPresetById = async (req, res) => {
 
 const deletePreset = async (req, res) => {
   const { id } = req.params;
+  const cachePath = path.join(cacheDir, `preset-${id}.json`);
+  const cachePathAll = path.join(cacheDir, `preset.json`);
 
   const preset = await Preset.findOne({ preset_id: id });
   if (!preset) {
@@ -214,8 +228,6 @@ const deletePreset = async (req, res) => {
     });
   }
 
-  const cachePath = path.join(cacheDir, `preset-${id}.json`);
-
   await Preset.deleteOne({ preset_id: id });
 
   res
@@ -224,6 +236,7 @@ const deletePreset = async (req, res) => {
 
   if (fs.existsSync(cachePath)) {
     fs.unlinkSync(cachePath);
+    fs.unlinkSync(cachePathAll);
   }
   return;
 };

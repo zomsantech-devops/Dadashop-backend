@@ -28,17 +28,18 @@ const getImage = async (req, res) => {
       .webp({ quality: 85 })
       .toBuffer()
       .then((data) => {
-        fs.writeFileSync(cachePath, data);
         res.contentType("image/webp");
         res.send(data);
+        fs.writeFileSync(cachePath, data);
+        return;
       })
       .catch((error) => {
         console.error(error);
-        res.status(500).send("Error processing image");
+        return res.status(500).send("Error processing image");
       });
   } catch (error) {
     console.error(error);
-    res.status(500).send("Server error");
+    return res.status(500).send("Server error");
   }
 };
 

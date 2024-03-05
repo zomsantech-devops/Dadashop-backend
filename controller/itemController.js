@@ -103,13 +103,13 @@ const getItemDetail = async (req, res) => {
       },
     };
 
-    // fs.writeFileSync(cachePath, JSON.stringify(fullData), "utf8");
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       data: fullData,
       source: "database",
     });
+    fs.writeFileSync(cachePath, JSON.stringify(fullData), "utf8");
+    return;
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -279,11 +279,9 @@ const getItems = async (req, res) => {
       });
     }
 
+    res.status(200).json({ success: true, data: item, source: "database" });
     fs.writeFileSync(cachePath, JSON.stringify(item), "utf8");
-
-    return res
-      .status(200)
-      .json({ success: true, data: item, source: "database" });
+    return;
   } catch (err) {
     return res.status(500).json({
       success: false,
