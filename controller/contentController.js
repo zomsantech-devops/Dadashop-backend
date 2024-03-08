@@ -39,17 +39,15 @@ const updateContent = async (req, res) => {
       existingContent.content = content;
       await existingContent.save();
 
-      res.status(200).json({
+      if (fs.existsSync(cachePath)) {
+        fs.unlinkSync(cachePath);
+      }
+      fs.writeFileSync(cachePath, JSON.stringify(existingContent), "utf8");
+      return res.status(200).json({
         success: true,
         data: existingContent,
         message: "Update existing content successfully",
       });
-
-      if (fs.existsSync(cachePath)) {
-        fs.unlinkSync(cachePath);
-      }
-      fs.writeFileSync(cachePath, JSON.stringify(newContent), "utf8");
-      return;
     }
 
     const newContent = new Content({
@@ -69,7 +67,6 @@ const updateContent = async (req, res) => {
       fs.unlinkSync(cachePath);
     }
     fs.writeFileSync(cachePath, JSON.stringify(newContent), "utf8");
-    return;
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
