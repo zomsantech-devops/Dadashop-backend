@@ -1,4 +1,5 @@
-const Item = require("../models/Item");
+const { Item, ItemDetail } = require("../models/Item");
+
 const axios = require("axios");
 const { kv } = require("@vercel/kv");
 const fs = require("fs");
@@ -46,15 +47,26 @@ const getItemDetail = async (req, res) => {
   const cachePath = path.join(cacheDir, `item-${itemId}.json`);
 
   try {
-    // if (fs.existsSync(cachePath)) {
-    //   const cacheData = fs.readFileSync(cachePath, "utf8");
+    if (fs.existsSync(cachePath)) {
+      const cacheData = fs.readFileSync(cachePath, "utf8");
 
-    //   console.log(JSON.parse(cacheData));
+      return res
+        .status(200)
+        .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
+    }
 
-    //   return res
-    //     .status(200)
-    //     .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
-    // }
+    const existingItemDetail = await ItemDetail.findOne({ id: itemId });
+
+    if (existingItemDetail) {
+      res.status(200).json({
+        success: true,
+        data: existingItemDetail,
+        source: "database",
+      });
+
+      fs.writeFileSync(cachePath, JSON.stringify(existingItemDetail), "utf8");
+      return;
+    }
 
     const response = await axios.get(
       `https://fortniteapi.io/v2/items/get?id=${itemId}&includeRenderData=true&lang=en`,
@@ -111,13 +123,18 @@ const getItemDetail = async (req, res) => {
       },
     };
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       data: fullData,
-      source: "database",
+      source: "fortnite-api",
     });
-    // fs.writeFileSync(cachePath, JSON.stringify(fullData), "utf8");
-    // return;
+
+    fs.writeFileSync(cachePath, JSON.stringify(fullData), "utf8");
+
+    const itemData = new ItemDetail(fullData.item);
+
+    await itemData.save();
+    return;
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -255,12 +272,15 @@ const fetchAndStoreData = async () => {
 
 const initialize = async (req, res) => {
   // await Item.deleteMany({});
-  const { time_update } = await fetchAndStoreData();
 
   res.json({
     success: true,
-    time: time_update,
+    date: new Date(),
+    message: "Fetch data successful by worker",
   });
+
+  const { time_update } = await fetchAndStoreData();
+  return;
 };
 
 const getItems = async (req, res) => {

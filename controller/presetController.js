@@ -171,6 +171,7 @@ const getAllPreset = async (req, res) => {
       }
       return;
     }
+
     const presets = await Preset.find({});
     if (!presets) {
       return res
