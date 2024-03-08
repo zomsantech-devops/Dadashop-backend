@@ -7,6 +7,21 @@ if (!fs.existsSync(cacheDir)) {
   fs.mkdirSync(cacheDir);
 }
 
+// const getTitle = async (req, res) => {
+//   try {
+//     const existingContent = await Content.findOne({ name: "title" });
+//     if (!existingContent) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Content not found",
+//       });
+//     }
+//     return res.status(200).send(existingContent.content);
+//   } catch (error) {
+//     return res.status(500).json({ success: false, message: err.message });
+//   }
+// };
+
 const updateContent = async (req, res) => {
   try {
     const { name } = req.params;
@@ -63,9 +78,14 @@ const getContent = async (req, res) => {
 
     if (fs.existsSync(cachePath)) {
       const cacheData = fs.readFileSync(cachePath, "utf8");
+      const contentData = JSON.parse(cacheData);
+
+      if (contentData.name == "title") {
+        return res.status(200).send(contentData.content);
+      }
       return res
         .status(200)
-        .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
+        .json({ success: true, data: contentData, source: "cache" });
     }
 
     const existingContent = await Content.findOne({ name: name });
@@ -76,12 +96,18 @@ const getContent = async (req, res) => {
       });
     }
 
-    fs.writeFileSync(cachePath, JSON.stringify(existingContent), "utf8");
+    if (name == "title") {
+      res.status(200).send(existingContent.content);
+      fs.writeFileSync(cachePath, JSON.stringify(existingContent), "utf8");
+      return;
+    }
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       data: existingContent,
     });
+    fs.writeFileSync(cachePath, JSON.stringify(existingContent), "utf8");
+    return;
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
