@@ -19,19 +19,21 @@ const {
   deleteContent,
 } = require("../controller/contentController");
 
-router.post("/time", updateServiceTime);
-router.get("/time/worker", workerServiceTime);
+const { verifyAccessToken } = require("../middleware/verifyAccessToken");
+
+router.post("/time", verifyAccessToken, updateServiceTime);
+router.get("/time/worker", verifyAccessToken, workerServiceTime);
 router.get("/time", getServiceTime);
-router.get("/time/toggle/:settingStatus", toggleServiceTime);
-router.get("/time/toggle", toggleServiceTime);
+router.get("/time/toggle/:settingStatus", verifyAccessToken, toggleServiceTime);
+router.get("/time/toggle", verifyAccessToken, toggleServiceTime);
 
 // router.post("/currency", createRate);
 router.get("/currency", getRate);
-router.patch("/currency/:newRate", updateRate);
+router.patch("/currency/:newRate", verifyAccessToken, updateRate);
 
-router.post("/content/:name", updateContent);
+router.post("/content/:name", verifyAccessToken, updateContent);
 router.get("/content/:name", getContent);
-router.delete("/content/:name", deleteContent);
+router.delete("/content/:name", verifyAccessToken, deleteContent);
 router.get("/content", getAllContent);
 
 module.exports = { settingRoute: router };

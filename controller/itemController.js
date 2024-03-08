@@ -46,12 +46,15 @@ const getItemDetail = async (req, res) => {
   const cachePath = path.join(cacheDir, `item-${itemId}.json`);
 
   try {
-    if (fs.existsSync(cachePath)) {
-      const cacheData = fs.readFileSync(cachePath, "utf8");
-      return res
-        .status(200)
-        .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
-    }
+    // if (fs.existsSync(cachePath)) {
+    //   const cacheData = fs.readFileSync(cachePath, "utf8");
+
+    //   console.log(JSON.parse(cacheData));
+
+    //   return res
+    //     .status(200)
+    //     .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
+    // }
 
     const response = await axios.get(
       `https://fortniteapi.io/v2/items/get?id=${itemId}&includeRenderData=true&lang=en`,
@@ -59,6 +62,11 @@ const getItemDetail = async (req, res) => {
         headers: {
           accept: "application/json",
           Authorization: "3945fead-522037f0-427f0ece-efeb4a37",
+        },
+        params: {
+          lang: "en",
+          includeRenderData: true,
+          includeHiddenTabs: false,
         },
       }
     );
@@ -103,13 +111,13 @@ const getItemDetail = async (req, res) => {
       },
     };
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: fullData,
       source: "database",
     });
-    fs.writeFileSync(cachePath, JSON.stringify(fullData), "utf8");
-    return;
+    // fs.writeFileSync(cachePath, JSON.stringify(fullData), "utf8");
+    // return;
   } catch (err) {
     return res.status(500).json({
       success: false,
