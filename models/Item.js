@@ -56,7 +56,7 @@ const ItemDetailSchema = new mongoose.Schema({
     id: String,
     name: String,
   },
-  series: String,
+  series: { Object },
   price: Number,
   added: {
     date: String,

@@ -55,9 +55,11 @@ const getItemDetail = async (req, res) => {
         .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
     }
 
-    const existingItemDetail = await ItemDetail.findOne({ id: itemId });
+    const existingItemDetail = await ItemDetail.findOne({
+      id: itemId,
+    });
 
-    if (existingItemDetail) {
+    if (existingItemDetail !== null) {
       res.status(200).json({
         success: true,
         data: { result: true, item: existingItemDetail },
@@ -67,6 +69,8 @@ const getItemDetail = async (req, res) => {
       fs.writeFileSync(cachePath, JSON.stringify(existingItemDetail), "utf8");
       return;
     }
+
+    console.log(55);
 
     const response = await axios.get(
       `https://fortniteapi.io/v2/items/get?id=${itemId}&includeRenderData=true&lang=en`,
@@ -123,6 +127,11 @@ const getItemDetail = async (req, res) => {
       },
     };
 
+    console.log(fullData);
+
+    const itemData = new ItemDetail(fullData.item);
+    await itemData.save();
+
     res.status(200).json({
       success: true,
       data: fullData,
@@ -131,9 +140,6 @@ const getItemDetail = async (req, res) => {
 
     fs.writeFileSync(cachePath, JSON.stringify(fullData), "utf8");
 
-    const itemData = new ItemDetail(fullData.item);
-
-    await itemData.save();
     return;
   } catch (err) {
     return res.status(500).json({
@@ -144,7 +150,6 @@ const getItemDetail = async (req, res) => {
 };
 
 const fetchAndStoreData = async () => {
-  z;
   try {
     const response = await axios.get("https://fortniteapi.io/v2/shop", {
       headers: {
