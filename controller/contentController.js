@@ -39,11 +39,17 @@ const updateContent = async (req, res) => {
       existingContent.content = content;
       await existingContent.save();
 
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
         data: existingContent,
         message: "Update existing content successfully",
       });
+
+      if (fs.existsSync(cachePath)) {
+        fs.unlinkSync(cachePath);
+      }
+      fs.writeFileSync(cachePath, JSON.stringify(newContent), "utf8");
+      return;
     }
 
     const newContent = new Content({
