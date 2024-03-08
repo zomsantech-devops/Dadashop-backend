@@ -90,9 +90,6 @@ const getContent = async (req, res) => {
       const cacheData = fs.readFileSync(cachePath, "utf8");
       const contentData = JSON.parse(cacheData);
 
-      if (contentData.name == "title") {
-        return res.status(200).send(contentData.content);
-      }
       return res
         .status(200)
         .json({ success: true, data: contentData, source: "cache" });
@@ -104,12 +101,6 @@ const getContent = async (req, res) => {
         success: false,
         message: "Content not found",
       });
-    }
-
-    if (name == "title") {
-      res.status(200).send(existingContent.content);
-      fs.writeFileSync(cachePath, JSON.stringify(existingContent), "utf8");
-      return;
     }
 
     res.status(200).json({
