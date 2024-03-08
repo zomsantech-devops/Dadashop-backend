@@ -60,7 +60,7 @@ const getItemDetail = async (req, res) => {
     if (existingItemDetail) {
       res.status(200).json({
         success: true,
-        data: existingItemDetail,
+        data: { result: true, item: existingItemDetail },
         source: "database",
       });
 
