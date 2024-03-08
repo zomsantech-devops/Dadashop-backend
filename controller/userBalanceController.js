@@ -3,10 +3,9 @@ const UserBalance = require("../models/userBalance");
 const getAllUser = async (req, res) => {
   try {
     const userBalance = await UserBalance.find();
-    res.json(userBalance);
+    return res.json(userBalance);
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Server Error");
+    return res.status(500).send("Internal Server Error");
   }
 };
 
@@ -36,10 +35,9 @@ const createuser = async (req, res) => {
 
     const savedUserBalance = await newUserBalance.save();
 
-    res.json(savedUserBalance);
+    return res.json(savedUserBalance);
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Server Error");
+    return res.status(500).send("Internal Server Error");
   }
 };
 
@@ -64,10 +62,9 @@ const getSingleUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json(userBalance);
+    return res.json(userBalance);
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Server Error");
+    return res.status(500).send("Internal Server Error");
   }
 };
 
@@ -105,11 +102,9 @@ const updateSingleUser = async (req, res) => {
     if (!userBalance) {
       return res.status(404).json({ message: "User not found" });
     }
-
-    res.json(userBalance);
+    return res.json(userBalance);
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Server Error");
+    return res.status(500).send("Internal Server Error");
   }
 };
 
