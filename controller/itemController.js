@@ -144,6 +144,7 @@ const getItemDetail = async (req, res) => {
 };
 
 const fetchAndStoreData = async () => {
+  z;
   try {
     const response = await axios.get("https://fortniteapi.io/v2/shop", {
       headers: {
