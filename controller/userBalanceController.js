@@ -22,6 +22,14 @@ const createuser = async (req, res) => {
   } = req.body;
 
   try {
+    const existingUser = await newUserBalance.find({ id: id });
+    if (existingUser) {
+      return res.status(401).json({
+        success: false,
+        message: "User Already Exist",
+      });
+    }
+
     const newUserBalance = new UserBalance({
       id,
       discord_id,
