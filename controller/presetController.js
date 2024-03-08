@@ -166,6 +166,7 @@ const getAllPreset = async (req, res) => {
         .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
       const presets = await Preset.find({});
       if (presets) {
+        fs.unlinkSync(cachePath);
         fs.writeFileSync(cachePath, JSON.stringify(presets), "utf8");
       }
       return;
