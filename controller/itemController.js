@@ -141,7 +141,7 @@ const getItemDetail = async (req, res) => {
       source: "fortnite-api",
     });
 
-    fs.writeFileSync(cachePath, JSON.stringify(fullData), "utf8");
+    fs.writeFileSync(cachePath, JSON.stringify(fullData.item), "utf8");
 
     return;
   } catch (err) {
