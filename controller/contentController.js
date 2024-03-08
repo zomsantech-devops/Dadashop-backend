@@ -53,13 +53,17 @@ const updateContent = async (req, res) => {
 
     await newContent.save();
 
-    fs.writeFileSync(cachePath, JSON.stringify(newContent), "utf8");
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       data: newContent,
       message: "Create new content successfully",
     });
+
+    if (fs.existsSync(cachePath)) {
+      fs.unlinkSync(cachePath);
+    }
+    fs.writeFileSync(cachePath, JSON.stringify(newContent), "utf8");
+    return;
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
