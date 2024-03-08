@@ -50,9 +50,14 @@ const getItemDetail = async (req, res) => {
     if (fs.existsSync(cachePath)) {
       const cacheData = fs.readFileSync(cachePath, "utf8");
 
-      return res
-        .status(200)
-        .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
+      return res.status(200).json({
+        success: true,
+        data: {
+          result: true,
+          item: JSON.parse(cacheData),
+        },
+        source: "cache",
+      });
     }
 
     const existingItemDetail = await ItemDetail.findOne({
@@ -69,8 +74,6 @@ const getItemDetail = async (req, res) => {
       fs.writeFileSync(cachePath, JSON.stringify(existingItemDetail), "utf8");
       return;
     }
-
-    console.log(55);
 
     const response = await axios.get(
       `https://fortniteapi.io/v2/items/get?id=${itemId}&includeRenderData=true&lang=en`,
