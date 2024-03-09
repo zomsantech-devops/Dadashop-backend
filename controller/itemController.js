@@ -138,6 +138,8 @@ const getItemDetail = async (req, res) => {
       },
     };
 
+    // console.log(fullData.item.grants);
+
     res.status(200).json({
       success: true,
       data: fullData,

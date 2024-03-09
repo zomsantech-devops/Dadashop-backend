@@ -105,25 +105,7 @@ const ItemDetailSchema = new mongoose.Schema({
       styles: [Object],
     },
   ],
-  grants: [
-    {
-      id: String,
-      type: { id: String, name: String },
-      name: String,
-      description: String,
-      rarity: { id: String, name: String },
-      images: {
-        icon: String,
-        featured: String,
-        background: String,
-        icon_background: String,
-        full_background: String,
-      },
-      parent_id: String,
-      parent_name: String,
-      parent_price: Number,
-    },
-  ],
+  grants: [Object],
   fetchDate: {
     type: Date,
     default: () => moment.utc().toDate(),
