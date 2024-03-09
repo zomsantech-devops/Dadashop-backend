@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const moment = require("moment-timezone");
+const now = moment.utc();
 
 const itemSchema = new mongoose.Schema({
   id: String,
@@ -122,6 +124,10 @@ const ItemDetailSchema = new mongoose.Schema({
       parent_price: Number,
     },
   ],
+  fetchDate: {
+    type: Date,
+    default: () => moment.utc().toDate(),
+  },
 });
 
 const ItemDetail = mongoose.model("ItemDetail", ItemDetailSchema);

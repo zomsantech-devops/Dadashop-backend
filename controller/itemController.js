@@ -43,21 +43,24 @@ const arrayRedisToJson = (data) => {
 
 const getItemDetail = async (req, res) => {
   const itemId = req.params.itemId;
-
+  const now = moment.utc();
   const cachePath = path.join(cacheDir, `item-${itemId}.json`);
 
   try {
     if (fs.existsSync(cachePath)) {
       const cacheData = fs.readFileSync(cachePath, "utf8");
-
-      return res.status(200).json({
-        success: true,
-        data: {
-          result: true,
-          item: JSON.parse(cacheData),
-        },
-        source: "cache",
-      });
+      const cacheObj = JSON.parse(cacheData);
+      const fetchDate = moment(cacheObj.fetchDate).utc();
+      if (now.diff(fetchDate, "days") <= 1) {
+        return res.status(200).json({
+          success: true,
+          data: {
+            result: true,
+            item: JSON.parse(cacheData),
+          },
+          source: "cache",
+        });
+      }
     }
 
     const existingItemDetail = await ItemDetail.findOne({
@@ -65,18 +68,22 @@ const getItemDetail = async (req, res) => {
     });
 
     if (existingItemDetail !== null) {
-      res.status(200).json({
-        success: true,
-        data: { result: true, item: existingItemDetail },
-        source: "database",
-      });
+      const fetchDate = moment(existingItemDetail.fetchDate).utc();
 
-      fs.writeFileSync(cachePath, JSON.stringify(existingItemDetail), "utf8");
-      return;
+      if (now.diff(fetchDate, "days") <= 1) {
+        res.status(200).json({
+          success: true,
+          data: { result: true, item: existingItemDetail },
+          source: "database",
+        });
+
+        fs.writeFileSync(cachePath, JSON.stringify(existingItemDetail), "utf8");
+        return;
+      }
     }
 
     const response = await axios.get(
-      `https://fortniteapi.io/v2/items/get?id=${itemId}&includeRenderData=true&lang=en`,
+      `https://fortniteapi.io/v2/items/get?id=${itemId}`,
       {
         headers: {
           accept: "application/json",
@@ -87,6 +94,7 @@ const getItemDetail = async (req, res) => {
           includeRenderData: true,
           includeHiddenTabs: false,
         },
+        timeout: 30000,
       }
     );
 
@@ -130,15 +138,15 @@ const getItemDetail = async (req, res) => {
       },
     };
 
-    console.log(fullData);
-
-    const itemData = new ItemDetail(fullData.item);
-    await itemData.save();
-
     res.status(200).json({
       success: true,
       data: fullData,
       source: "fortnite-api",
+    });
+
+    await ItemDetail.findOneAndUpdate({ id: itemId }, fullData.item, {
+      new: true,
+      upsert: true,
     });
 
     fs.writeFileSync(cachePath, JSON.stringify(fullData.item), "utf8");
@@ -270,7 +278,7 @@ const fetchAndStoreData = async () => {
       await Item.create(item);
     }
 
-    return { time_update };
+    return;
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -294,7 +302,7 @@ const initialize = async (req, res) => {
 
 const getItems = async (req, res) => {
   try {
-    const now = moment.utc();
+    const now = moment.utc().add(7, "hours");
     const cachePath = path.join(
       cacheDir,
       `${now.date()}-${now.month()}-${now.year()}.json`
@@ -364,9 +372,24 @@ const dailyCheckUpdatedItem = async (req, res) => {
   }
 };
 
+const deleteAllItemDetail = async (req, res) => {
+  try {
+    await ItemDetail.deleteMany({});
+    res
+      .status(200)
+      .json({ success: true, message: "Delete item detail successful" });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: `Can't delete item right now, Please contract admin ${err.message}`,
+    });
+  }
+};
+
 module.exports = {
   dailyCheckUpdatedItem,
   initialize,
   getItems,
   getItemDetail,
+  deleteAllItemDetail,
 };
