@@ -276,6 +276,15 @@ const fetchAndStoreData = async () => {
 
     await Item.deleteMany({});
 
+    const cachePath = path.join(
+      cacheDir,
+      `${now.date()}-${now.month()}-${now.year()}.json`
+    );
+
+    if (fs.existsSync(cachePath)) {
+      fs.unlinkSync(cachePath);
+    }
+
     for (let item of extractedItems) {
       await Item.create(item);
     }
@@ -376,6 +385,22 @@ const dailyCheckUpdatedItem = async (req, res) => {
 
 const deleteAllItemDetail = async (req, res) => {
   try {
+    // const cachePath = path.join(
+    //   cacheDir,
+    //   `${now.date()}-${now.month()}-${now.year()}.json`
+    // );
+    const files = fs.readdirSync(cacheDir);
+    files.forEach((file) => {
+      if (file.startsWith("item-")) {
+        const filePath = path.join(cacheDir, file);
+        try {
+          fs.unlinkSync(filePath);
+        } catch (error) {
+          console.error("Could not remove file: ", filePath, error);
+        }
+      }
+    });
+
     await ItemDetail.deleteMany({});
     res
       .status(200)
