@@ -6,6 +6,8 @@ const fs = require("fs");
 const path = require("path");
 const moment = require("moment-timezone");
 
+const { FORTNITE_API_KEY } = require("../util/var");
+
 const cacheDir = path.join("/tmp", "cache");
 if (!fs.existsSync(cacheDir)) {
   fs.mkdirSync(cacheDir);
@@ -87,7 +89,7 @@ const getItemDetail = async (req, res) => {
       {
         headers: {
           accept: "application/json",
-          Authorization: "3945fead-522037f0-427f0ece-efeb4a37",
+          Authorization: FORTNITE_API_KEY,
         },
         params: {
           lang: "en",
@@ -167,7 +169,7 @@ const fetchAndStoreData = async () => {
     const response = await axios.get("https://fortniteapi.io/v2/shop", {
       headers: {
         accept: "application/json",
-        Authorization: "40cb2d55-3b4133d9-f1708ca0-0f179353",
+        Authorization: FORTNITE_API_KEY,
       },
       params: {
         lang: "en",
