@@ -293,6 +293,7 @@ const fetchAndStoreData = async () => {
 
 const initialize = async (req, res) => {
   // await Item.deleteMany({});
+  await fetchAndStoreData();
 
   res.json({
     success: true,
@@ -300,7 +301,6 @@ const initialize = async (req, res) => {
     message: "Fetch data successful by worker",
   });
 
-  await fetchAndStoreData();
   return;
 };
 
