@@ -276,15 +276,6 @@ const fetchAndStoreData = async () => {
 
     await Item.deleteMany({});
 
-    const cachePath = path.join(
-      cacheDir,
-      `${now.date()}-${now.month()}-${now.year()}.json`
-    );
-
-    if (fs.existsSync(cachePath)) {
-      fs.unlinkSync(cachePath);
-    }
-
     for (let item of extractedItems) {
       await Item.create(item);
     }
@@ -307,25 +298,12 @@ const initialize = async (req, res) => {
     message: "Fetch data successful by worker",
   });
 
-  const { time_update } = await fetchAndStoreData();
+  await fetchAndStoreData();
   return;
 };
 
 const getItems = async (req, res) => {
   try {
-    const now = moment.utc().add(7, "hours");
-    const cachePath = path.join(
-      cacheDir,
-      `${now.date()}-${now.month()}-${now.year()}.json`
-    );
-
-    if (fs.existsSync(cachePath)) {
-      const cacheData = fs.readFileSync(cachePath, "utf8");
-      return res
-        .status(200)
-        .json({ success: true, data: JSON.parse(cacheData), source: "cache" });
-    }
-
     const item = await Item.find({});
 
     if (!item) {
@@ -336,7 +314,6 @@ const getItems = async (req, res) => {
     }
 
     res.status(200).json({ success: true, data: item, source: "database" });
-    fs.writeFileSync(cachePath, JSON.stringify(item), "utf8");
     return;
   } catch (err) {
     return res.status(500).json({
