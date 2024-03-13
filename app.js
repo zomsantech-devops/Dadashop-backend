@@ -34,7 +34,7 @@ app.all("*", function (req, res, next) {
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
   next();
 }); 
-
+ 
 app.use("/api/v1/auth", authRoute);
 
 app.use("/api/v1/item", itemRoute);
