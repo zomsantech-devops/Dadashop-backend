@@ -220,7 +220,9 @@ const fetchAndStoreData = async () => {
         ? shopItem.displayAssets.map((asset) => ({
             display_id: asset.displayAsset ? asset.displayAsset : null,
             image_url: asset.url ? asset.url : null,
-            image_background: asset.background ? asset.background : null,
+            image_background: asset.background
+              ? asset.background.replace(".png", ".webp")
+              : null,
             image_full_background: asset.full_background
               ? asset.full_background
               : null,
@@ -254,7 +256,7 @@ const fetchAndStoreData = async () => {
           shopItem.displayAssets &&
           shopItem.displayAssets[0] &&
           shopItem.displayAssets[0].url
-            ? shopItem.displayAssets[0].url
+            ? shopItem.displayAssets[0].url.replace(".png", ".webp")
             : null,
         images_background: images_background,
         images_full_background: images_full_background,
